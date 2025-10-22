@@ -26,6 +26,10 @@ class Player:
         # Coin collection
         self.coins_collected = 0
 
+        # HP system
+        self.max_hp = 100
+        self.current_hp = self.max_hp
+
     def update(self, keys, obstacles=None):
         """Update player position based on input
 
@@ -77,6 +81,30 @@ class Player:
     def collect_coin(self):
         """Collect a coin and increment the counter"""
         self.coins_collected += 1
+
+    def take_damage(self, amount):
+        """Take damage and reduce HP
+
+        Args:
+            amount: Amount of damage to take
+        """
+        self.current_hp = max(0, self.current_hp - amount)
+
+    def heal(self, amount):
+        """Heal and increase HP
+
+        Args:
+            amount: Amount of HP to restore
+        """
+        self.current_hp = min(self.max_hp, self.current_hp + amount)
+
+    def is_alive(self):
+        """Check if player is alive
+
+        Returns:
+            True if HP > 0, False otherwise
+        """
+        return self.current_hp > 0
 
     def draw(self, surface):
         """Draw the player to the screen"""

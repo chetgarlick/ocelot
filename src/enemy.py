@@ -34,6 +34,10 @@ class Enemy:
         self.patrol_direction = 1  # 1 for right, -1 for left
         self.patrol_timer = 0
         self.patrol_change_interval = 60  # Frames before changing direction
+
+        # HP system
+        self.max_hp = 30
+        self.current_hp = self.max_hp
         
         # Create a simple colored rectangle for the enemy (red)
         self.image = pygame.Surface((self.width, self.height))
@@ -112,7 +116,7 @@ class Enemy:
 
     def _try_move(self, dx, dy, obstacles):
         """Try to move the enemy, checking for collisions
-        
+
         Args:
             dx: Change in x
             dy: Change in y
@@ -121,19 +125,35 @@ class Enemy:
         # Calculate new position
         new_x = self.x + dx
         new_y = self.y + dy
-        
+
         # Create a test rect at the new position
         test_rect = pygame.Rect(new_x, new_y, self.width, self.height)
-        
+
         # Check collision with obstacles
         for obstacle in obstacles:
             if test_rect.colliderect(obstacle.rect):
                 # Collision detected, don't move
                 return
-        
+
         # No collision, update position
         self.x = new_x
         self.y = new_y
+
+    def take_damage(self, amount):
+        """Take damage and reduce HP
+
+        Args:
+            amount: Amount of damage to take
+        """
+        self.current_hp = max(0, self.current_hp - amount)
+
+    def is_alive(self):
+        """Check if enemy is alive
+
+        Returns:
+            True if HP > 0, False otherwise
+        """
+        return self.current_hp > 0
 
     def draw(self, surface, camera):
         """Draw the enemy to the screen with camera offset

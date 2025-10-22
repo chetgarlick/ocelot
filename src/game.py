@@ -196,7 +196,56 @@ class Game:
         pygame.display.flip()
 
     def _draw_ui(self):
-        """Draw UI elements like coin count"""
+        """Draw UI elements like coin count and HP bar"""
+        # Draw HP bar (bottom-left)
+        self._draw_hp_bar()
+
+        # Draw coin count (bottom-right)
+        self._draw_coin_count()
+
+    def _draw_hp_bar(self):
+        """Draw the player's HP bar in the bottom-left corner"""
+        # HP bar dimensions
+        bar_width = 200
+        bar_height = 30
+        padding = 10
+
+        # Position in bottom-left corner
+        bar_x = padding
+        bar_y = self.config.SCREEN_HEIGHT - bar_height - padding
+
+        # Calculate HP percentage
+        hp_percentage = self.player.current_hp / self.player.max_hp
+        filled_width = int(bar_width * hp_percentage)
+
+        # Draw background (dark)
+        bg_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
+        pygame.draw.rect(self.screen, (50, 50, 50), bg_rect)
+        pygame.draw.rect(self.screen, (200, 200, 200), bg_rect, 2)  # Border
+
+        # Draw filled portion (red to green gradient based on health)
+        if hp_percentage > 0.5:
+            # Green when healthy
+            color = (0, 200, 0)
+        elif hp_percentage > 0.25:
+            # Yellow when moderate damage
+            color = (200, 200, 0)
+        else:
+            # Red when low health
+            color = (200, 0, 0)
+
+        filled_rect = pygame.Rect(bar_x, bar_y, filled_width, bar_height)
+        pygame.draw.rect(self.screen, color, filled_rect)
+
+        # Draw HP text
+        font = pygame.font.Font(None, 24)
+        hp_text = f"{int(self.player.current_hp)}/{int(self.player.max_hp)}"
+        text_surface = font.render(hp_text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=bg_rect.center)
+        self.screen.blit(text_surface, text_rect)
+
+    def _draw_coin_count(self):
+        """Draw the coin count in the bottom-right corner"""
         # Create font for text
         font = pygame.font.Font(None, 36)
 
