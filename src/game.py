@@ -7,6 +7,7 @@ from src.config import Config
 from src.player import Player
 from src.world import World
 from src.camera import Camera
+from src.menu import MainMenu, OptionsMenu, PauseMenu
 
 
 class Game:
@@ -15,28 +16,102 @@ class Game:
     def __init__(self):
         """Initialize the game"""
         pygame.init()
-        
+
         self.config = Config()
         self.screen = pygame.display.set_mode(
             (self.config.SCREEN_WIDTH, self.config.SCREEN_HEIGHT)
         )
         pygame.display.set_caption(self.config.GAME_TITLE)
-        
+
         self.clock = pygame.time.Clock()
         self.running = True
-        
+
+        # Game state
+        self.state = "MAIN_MENU"  # MAIN_MENU, OPTIONS_MENU, PLAYING, PAUSED
+        self.current_menu = None
+
+        # Initialize game objects (but don't create them yet)
+        self.world = None
+        self.player = None
+        self.camera = None
+
+        # Create menus
+        self._create_menus()
+
+    def _create_menus(self):
+        """Create all menus"""
+        self.main_menu = MainMenu(
+            on_start=self._start_game,
+            on_options=self._show_main_options,
+            on_quit=self._quit_game
+        )
+
+        self.options_menu = OptionsMenu(
+            on_back=self._back_to_main_menu
+        )
+
+        self.pause_menu = PauseMenu(
+            on_resume=self._resume_game,
+            on_options=self._show_pause_options,
+            on_quit=self._quit_to_main_menu
+        )
+
+        # Start with main menu
+        self.current_menu = self.main_menu
+        self.state = "MAIN_MENU"
+
+    def _start_game(self):
+        """Start the game"""
         # Initialize game objects
         self.world = World()
-        # Spawn player in a safe location (bottom-left area)
         self.player = Player(50, 400)
-
-        # Initialize camera
         self.camera = Camera(
             self.config.SCREEN_WIDTH,
             self.config.SCREEN_HEIGHT,
             self.world.world_width,
             self.world.world_height
         )
+        self.state = "PLAYING"
+        return None
+
+    def _show_main_options(self):
+        """Show options menu from main menu"""
+        self.current_menu = self.options_menu
+        self.state = "OPTIONS_MENU"
+        return None
+
+    def _back_to_main_menu(self):
+        """Go back to main menu"""
+        self.current_menu = self.main_menu
+        self.state = "MAIN_MENU"
+        return None
+
+    def _pause_game(self):
+        """Pause the game"""
+        self.current_menu = self.pause_menu
+        self.state = "PAUSED"
+
+    def _resume_game(self):
+        """Resume the game"""
+        self.state = "PLAYING"
+        return None
+
+    def _show_pause_options(self):
+        """Show options menu from pause menu"""
+        self.current_menu = self.options_menu
+        self.state = "OPTIONS_MENU"
+        return None
+
+    def _quit_to_main_menu(self):
+        """Quit to main menu"""
+        self.current_menu = self.main_menu
+        self.state = "MAIN_MENU"
+        return None
+
+    def _quit_game(self):
+        """Quit the game"""
+        self.running = False
+        return None
 
     def handle_events(self):
         """Handle input events"""
@@ -45,20 +120,33 @@ class Game:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.running = False
+                    if self.state == "PLAYING":
+                        self._pause_game()
+                    elif self.state == "PAUSED":
+                        self._resume_game()
+                    elif self.state in ["MAIN_MENU", "OPTIONS_MENU"]:
+                        self.running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left click
+                    if self.current_menu:
+                        self.current_menu.handle_click(event.pos)
 
     def update(self):
         """Update game state"""
-        keys = pygame.key.get_pressed()
-        self.player.update(keys, self.world.obstacles)
-        self.camera.update(self.player)
+        if self.state == "PLAYING":
+            keys = pygame.key.get_pressed()
+            self.player.update(keys, self.world.obstacles)
+            self.camera.update(self.player)
 
-        # Update enemies
-        for enemy in self.world.enemies:
-            enemy.update(self.player, self.world.obstacles)
+            # Update enemies
+            for enemy in self.world.enemies:
+                enemy.update(self.player, self.world.obstacles)
 
-        # Check for coin collection
-        self._check_coin_collection()
+            # Check for coin collection
+            self._check_coin_collection()
+        elif self.current_menu:
+            mouse_pos = pygame.mouse.get_pos()
+            self.current_menu.update(mouse_pos)
 
     def _check_coin_collection(self):
         """Check if player collides with any coins and collect them"""
@@ -75,17 +163,35 @@ class Game:
 
     def draw(self):
         """Draw everything to the screen"""
-        self.screen.fill(self.config.BG_COLOR)
+        if self.state == "PLAYING":
+            self.screen.fill(self.config.BG_COLOR)
 
-        # Draw world with camera offset
-        self.world.draw(self.screen, self.camera)
+            # Draw world with camera offset
+            self.world.draw(self.screen, self.camera)
 
-        # Draw player with camera offset
-        player_rect = self.camera.apply(self.player)
-        self.screen.blit(self.player.image, player_rect)
+            # Draw player with camera offset
+            player_rect = self.camera.apply(self.player)
+            self.screen.blit(self.player.image, player_rect)
 
-        # Draw UI (star count in bottom-right)
-        self._draw_ui()
+            # Draw UI (coin count in bottom-right)
+            self._draw_ui()
+        elif self.state == "PAUSED":
+            # Draw game in background
+            self.screen.fill(self.config.BG_COLOR)
+            self.world.draw(self.screen, self.camera)
+            player_rect = self.camera.apply(self.player)
+            self.screen.blit(self.player.image, player_rect)
+            self._draw_ui()
+
+            # Draw semi-transparent overlay
+            overlay = pygame.Surface((self.config.SCREEN_WIDTH, self.config.SCREEN_HEIGHT))
+            overlay.set_alpha(128)
+            overlay.fill((0, 0, 0))
+            self.screen.blit(overlay, (0, 0))
+
+        # Draw menu if active
+        if self.current_menu and self.state != "PLAYING":
+            self.current_menu.draw(self.screen)
 
         pygame.display.flip()
 
