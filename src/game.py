@@ -53,6 +53,10 @@ class Game:
         self.player.update(keys, self.world.obstacles)
         self.camera.update(self.player)
 
+        # Update enemies
+        for enemy in self.world.enemies:
+            enemy.update(self.player, self.world.obstacles)
+
         # Check for coin collection
         self._check_coin_collection()
 

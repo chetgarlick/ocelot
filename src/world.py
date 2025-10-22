@@ -6,6 +6,7 @@ import pygame
 from src.config import Config
 from src.obstacle import Obstacle
 from src.coin import Coin
+from src.enemy import Enemy
 
 
 class World:
@@ -30,6 +31,10 @@ class World:
         # List of collectible coins
         self.coins = []
         self._generate_coins()
+
+        # List of enemies
+        self.enemies = []
+        self._generate_enemies()
 
     def _generate_tilemap(self):
         """Generate a simple tilemap"""
@@ -100,6 +105,20 @@ class World:
         for x, y in coin_positions:
             self.coins.append(Coin(x, y))
 
+    def _generate_enemies(self):
+        """Generate enemies scattered throughout the world"""
+        # Create enemies in various locations with patrol areas
+        enemy_positions = [
+            (400, 400, 150),    # (x, y, patrol_radius)
+            (1200, 300, 150),
+            (1600, 1000, 150),
+            (800, 1400, 150),
+            (2000, 600, 150),
+        ]
+
+        for x, y, patrol_radius in enemy_positions:
+            self.enemies.append(Enemy(x, y, patrol_radius))
+
     def draw(self, surface, camera):
         """Draw the world to the screen with camera offset
 
@@ -142,4 +161,8 @@ class World:
         # Draw coins
         for coin in self.coins:
             coin.draw(surface, camera)
+
+        # Draw enemies
+        for enemy in self.enemies:
+            enemy.draw(surface, camera)
 
