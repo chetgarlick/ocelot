@@ -5,48 +5,45 @@ Enemy class - represents an enemy that patrols and chases the player
 import pygame
 import math
 from src.config import Config
+from src.entity import Entity
 
 
-class Enemy:
+class Enemy(Entity):
     """An enemy that patrols an area and chases the player when nearby"""
 
     def __init__(self, x, y, patrol_radius=150):
         """Initialize an enemy
-        
+
         Args:
             x: X position in world coordinates
             y: Y position in world coordinates
             patrol_radius: Radius of the patrol area around the starting position
         """
         self.config = Config()
-        self.x = x
-        self.y = y
+
+        # Initialize parent Entity class
+        super().__init__(
+            x, y,
+            24, 24,  # width, height
+            max_hp=30,
+            knockback_resistance=0.3
+        )
+
         self.start_x = x  # Starting position for patrol
         self.start_y = y
-        self.width = 24
-        self.height = 24
         self.speed = 2
         self.patrol_radius = patrol_radius
         self.chase_radius = 200  # Distance at which enemy starts chasing player
-        
+
         # State
         self.is_chasing = False
         self.patrol_direction = 1  # 1 for right, -1 for left
         self.patrol_timer = 0
         self.patrol_change_interval = 60  # Frames before changing direction
 
-        # HP system
-        self.max_hp = 30
-        self.current_hp = self.max_hp
-
-        # Knockback
-        self.knockback_resistance = 0.3  # 0-1, higher = more resistant to knockback
-        self.knockback_velocity = [0, 0]  # Current knockback velocity
-        
         # Create a simple colored rectangle for the enemy (red)
         self.image = pygame.Surface((self.width, self.height))
         self.image.fill((255, 0, 0))  # Red color
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
     def update(self, player, obstacles):
         """Update enemy position based on patrol or chase behavior
@@ -58,14 +55,7 @@ class Enemy:
         # Apply knockback velocity with friction
         if self.knockback_velocity[0] != 0 or self.knockback_velocity[1] != 0:
             self._try_move(self.knockback_velocity[0], self.knockback_velocity[1], obstacles)
-            # Apply friction to knockback
-            self.knockback_velocity[0] *= 0.85
-            self.knockback_velocity[1] *= 0.85
-            # Stop knockback if velocity is very small
-            if abs(self.knockback_velocity[0]) < 0.1:
-                self.knockback_velocity[0] = 0
-            if abs(self.knockback_velocity[1]) < 0.1:
-                self.knockback_velocity[1] = 0
+            self.apply_knockback_friction()
 
         # Calculate distance to player
         dx = player.x - self.x
@@ -154,37 +144,6 @@ class Enemy:
         # No collision, update position
         self.x = new_x
         self.y = new_y
-
-    def take_damage(self, amount):
-        """Take damage and reduce HP
-
-        Args:
-            amount: Amount of damage to take
-        """
-        self.current_hp = max(0, self.current_hp - amount)
-
-    def is_alive(self):
-        """Check if enemy is alive
-
-        Returns:
-            True if HP > 0, False otherwise
-        """
-        return self.current_hp > 0
-
-    def apply_knockback(self, knockback_power, direction_x, direction_y):
-        """Apply knockback force to the enemy
-
-        Args:
-            knockback_power: Base knockback power
-            direction_x: X component of knockback direction (normalized)
-            direction_y: Y component of knockback direction (normalized)
-        """
-        # Calculate actual knockback based on resistance
-        actual_knockback = knockback_power * (1 - self.knockback_resistance)
-
-        # Apply knockback velocity
-        self.knockback_velocity[0] = direction_x * actual_knockback
-        self.knockback_velocity[1] = direction_y * actual_knockback
 
     def draw(self, surface, camera):
         """Draw the enemy to the screen with camera offset
