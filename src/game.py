@@ -6,6 +6,7 @@ import pygame
 from src.config import Config
 from src.player import Player
 from src.world import World
+from src.camera import Camera
 
 
 class Game:
@@ -29,6 +30,14 @@ class Game:
         # Spawn player in a safe location (bottom-left area)
         self.player = Player(50, 400)
 
+        # Initialize camera
+        self.camera = Camera(
+            self.config.SCREEN_WIDTH,
+            self.config.SCREEN_HEIGHT,
+            self.world.world_width,
+            self.world.world_height
+        )
+
     def handle_events(self):
         """Handle input events"""
         for event in pygame.event.get():
@@ -42,17 +51,19 @@ class Game:
         """Update game state"""
         keys = pygame.key.get_pressed()
         self.player.update(keys, self.world.obstacles)
+        self.camera.update(self.player)
 
     def draw(self):
         """Draw everything to the screen"""
         self.screen.fill(self.config.BG_COLOR)
-        
-        # Draw world
-        self.world.draw(self.screen)
-        
-        # Draw player
-        self.player.draw(self.screen)
-        
+
+        # Draw world with camera offset
+        self.world.draw(self.screen, self.camera)
+
+        # Draw player with camera offset
+        player_rect = self.camera.apply(self.player)
+        self.screen.blit(self.player.image, player_rect)
+
         pygame.display.flip()
 
     def run(self):

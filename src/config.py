@@ -19,3 +19,7 @@ class Config:
     PLAYER_SPEED = 5
     PLAYER_SIZE = 32
 
+    # World settings
+    WORLD_WIDTH = 2400  # 3x screen width
+    WORLD_HEIGHT = 1800  # 3x screen height
+

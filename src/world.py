@@ -15,9 +15,11 @@ class World:
         self.config = Config()
         self.tile_size = 32
 
-        # Create a simple tilemap (0 = grass, 1 = water)
-        self.width = self.config.SCREEN_WIDTH // self.tile_size
-        self.height = self.config.SCREEN_HEIGHT // self.tile_size
+        # Create a large tilemap (0 = grass, 1 = water)
+        self.width = self.config.WORLD_WIDTH // self.tile_size
+        self.height = self.config.WORLD_HEIGHT // self.tile_size
+        self.world_width = self.config.WORLD_WIDTH
+        self.world_height = self.config.WORLD_HEIGHT
         self.tiles = self._generate_tilemap()
 
         # List of obstacles
@@ -37,35 +39,69 @@ class World:
 
     def _generate_obstacles(self):
         """Generate obstacles in the world"""
-        # Create some grey obstacles scattered around
-        # Top wall
-        self.obstacles.append(Obstacle(100, 50, 300, 20))
+        # Create obstacles scattered throughout the larger world
 
-        # Right wall
+        # Top-left area
+        self.obstacles.append(Obstacle(100, 50, 300, 20))
         self.obstacles.append(Obstacle(600, 100, 20, 250))
 
-        # Bottom wall
+        # Top-right area
+        self.obstacles.append(Obstacle(1500, 100, 400, 30))
+        self.obstacles.append(Obstacle(2000, 200, 100, 150))
+
+        # Middle area
         self.obstacles.append(Obstacle(150, 500, 300, 20))
-
-        # Center obstacle
         self.obstacles.append(Obstacle(350, 250, 100, 100))
+        self.obstacles.append(Obstacle(1000, 600, 200, 50))
+        self.obstacles.append(Obstacle(1200, 400, 50, 200))
 
-    def draw(self, surface):
-        """Draw the world to the screen"""
+        # Bottom-left area
+        self.obstacles.append(Obstacle(200, 1400, 250, 30))
+        self.obstacles.append(Obstacle(100, 1200, 30, 300))
+
+        # Bottom-right area
+        self.obstacles.append(Obstacle(1800, 1500, 300, 40))
+        self.obstacles.append(Obstacle(2100, 1200, 100, 200))
+
+        # Center-right area
+        self.obstacles.append(Obstacle(1600, 800, 150, 150))
+
+    def draw(self, surface, camera):
+        """Draw the world to the screen with camera offset
+
+        Args:
+            surface: Pygame surface to draw to
+            camera: Camera object for viewport offset
+        """
         # Draw tiles
         for y, row in enumerate(self.tiles):
             for x, tile in enumerate(row):
-                rect = pygame.Rect(x * self.tile_size, y * self.tile_size,
-                                   self.tile_size, self.tile_size)
-                if tile == 0:  # Grass
-                    pygame.draw.rect(surface, (34, 139, 34), rect)
-                elif tile == 1:  # Water
-                    pygame.draw.rect(surface, (0, 100, 200), rect)
+                world_x = x * self.tile_size
+                world_y = y * self.tile_size
+                screen_x, screen_y = camera.apply_point(world_x, world_y)
 
-                # Draw grid lines for visibility
-                pygame.draw.rect(surface, (50, 150, 50), rect, 1)
+                rect = pygame.Rect(screen_x, screen_y,
+                                   self.tile_size, self.tile_size)
+
+                # Only draw tiles that are visible on screen
+                if -self.tile_size < screen_x < camera.width and \
+                   -self.tile_size < screen_y < camera.height:
+                    if tile == 0:  # Grass
+                        pygame.draw.rect(surface, (34, 139, 34), rect)
+                    elif tile == 1:  # Water
+                        pygame.draw.rect(surface, (0, 100, 200), rect)
+
+                    # Draw grid lines for visibility
+                    pygame.draw.rect(surface, (50, 150, 50), rect, 1)
 
         # Draw obstacles
         for obstacle in self.obstacles:
-            obstacle.draw(surface)
+            obstacle_rect = pygame.Rect(
+                camera.apply_point(obstacle.x, obstacle.y),
+                (obstacle.width, obstacle.height)
+            )
+            # Only draw if visible on screen
+            if -obstacle.width < obstacle_rect.x < camera.width and \
+               -obstacle.height < obstacle_rect.y < camera.height:
+                surface.blit(obstacle.image, obstacle_rect)
 
