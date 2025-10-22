@@ -3,6 +3,7 @@ Main Game class - handles the game loop and initialization
 """
 
 import pygame
+import math
 from src.config import Config
 from src.player import Player
 from src.world import World
@@ -204,6 +205,19 @@ class Game:
                     enemy.take_damage(10)  # 10 damage per projectile
                     projectiles_to_remove.append(proj_idx)
 
+                    # Apply knockback to enemy
+                    # Calculate direction from projectile to enemy
+                    dx = enemy.x - projectile.x
+                    dy = enemy.y - projectile.y
+                    distance = math.sqrt(dx**2 + dy**2)
+                    if distance > 0:
+                        direction_x = dx / distance
+                        direction_y = dy / distance
+                    else:
+                        direction_x, direction_y = 1, 0
+
+                    enemy.apply_knockback(projectile.knockback_power, direction_x, direction_y)
+
                     # Check if enemy died
                     if not enemy.is_alive():
                         # Create explosion at enemy position
@@ -238,6 +252,19 @@ class Game:
                     if self.player.damage_cooldown <= 0:
                         self.player.take_damage(10)  # 10 damage per hit
                         self.player.damage_cooldown = 60  # 1 second cooldown at 60 FPS
+
+                        # Apply knockback to player
+                        # Calculate direction from enemy to player
+                        dx = self.player.x - enemy.x
+                        dy = self.player.y - enemy.y
+                        distance = math.sqrt(dx**2 + dy**2)
+                        if distance > 0:
+                            direction_x = dx / distance
+                            direction_y = dy / distance
+                        else:
+                            direction_x, direction_y = 1, 0
+
+                        self.player.apply_knockback(20, direction_x, direction_y)
 
     def _player_died(self):
         """Handle player death"""

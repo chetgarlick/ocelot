@@ -38,6 +38,10 @@ class Enemy:
         # HP system
         self.max_hp = 30
         self.current_hp = self.max_hp
+
+        # Knockback
+        self.knockback_resistance = 0.3  # 0-1, higher = more resistant to knockback
+        self.knockback_velocity = [0, 0]  # Current knockback velocity
         
         # Create a simple colored rectangle for the enemy (red)
         self.image = pygame.Surface((self.width, self.height))
@@ -46,27 +50,39 @@ class Enemy:
 
     def update(self, player, obstacles):
         """Update enemy position based on patrol or chase behavior
-        
+
         Args:
             player: Player object to chase or detect
             obstacles: List of obstacles to check collision against
         """
+        # Apply knockback velocity with friction
+        if self.knockback_velocity[0] != 0 or self.knockback_velocity[1] != 0:
+            self._try_move(self.knockback_velocity[0], self.knockback_velocity[1], obstacles)
+            # Apply friction to knockback
+            self.knockback_velocity[0] *= 0.85
+            self.knockback_velocity[1] *= 0.85
+            # Stop knockback if velocity is very small
+            if abs(self.knockback_velocity[0]) < 0.1:
+                self.knockback_velocity[0] = 0
+            if abs(self.knockback_velocity[1]) < 0.1:
+                self.knockback_velocity[1] = 0
+
         # Calculate distance to player
         dx = player.x - self.x
         dy = player.y - self.y
         distance_to_player = math.sqrt(dx**2 + dy**2)
-        
+
         # Check if should chase
         if distance_to_player < self.chase_radius:
             self.is_chasing = True
         elif distance_to_player > self.chase_radius + 100:  # Hysteresis to prevent flickering
             self.is_chasing = False
-        
+
         if self.is_chasing:
             self._chase_player(player, obstacles, dx, dy, distance_to_player)
         else:
             self._patrol(obstacles)
-        
+
         # Update rect position
         self.rect.x = self.x
         self.rect.y = self.y
@@ -154,6 +170,21 @@ class Enemy:
             True if HP > 0, False otherwise
         """
         return self.current_hp > 0
+
+    def apply_knockback(self, knockback_power, direction_x, direction_y):
+        """Apply knockback force to the enemy
+
+        Args:
+            knockback_power: Base knockback power
+            direction_x: X component of knockback direction (normalized)
+            direction_y: Y component of knockback direction (normalized)
+        """
+        # Calculate actual knockback based on resistance
+        actual_knockback = knockback_power * (1 - self.knockback_resistance)
+
+        # Apply knockback velocity
+        self.knockback_velocity[0] = direction_x * actual_knockback
+        self.knockback_velocity[1] = direction_y * actual_knockback
 
     def draw(self, surface, camera):
         """Draw the enemy to the screen with camera offset

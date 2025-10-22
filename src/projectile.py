@@ -9,21 +9,23 @@ import math
 class Projectile:
     """A projectile that travels in a direction and can hit enemies"""
 
-    def __init__(self, x, y, target_x, target_y, speed=8):
+    def __init__(self, x, y, target_x, target_y, speed=8, knockback_power=5):
         """Initialize a projectile
-        
+
         Args:
             x: Starting x position
             y: Starting y position
             target_x: Target x position (cursor position)
             target_y: Target y position (cursor position)
             speed: Speed of projectile in pixels per frame
+            knockback_power: How much knockback this projectile applies
         """
         self.x = x
         self.y = y
         self.speed = speed
         self.radius = 5
         self.color = (255, 200, 0)  # Orange/gold color
+        self.knockback_power = knockback_power
         
         # Calculate direction to target
         dx = target_x - x

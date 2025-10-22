@@ -47,6 +47,10 @@ class Player:
         self.invincibility_timer = 0  # Frames of invincibility after dash starts
         self.invincibility_duration = 20  # 0.33 seconds of invincibility
 
+        # Knockback
+        self.knockback_resistance = 0.7  # 0-1, higher = more resistant to knockback
+        self.knockback_velocity = [0, 0]  # Current knockback velocity
+
     def update(self, keys, obstacles=None):
         """Update player position based on input
 
@@ -62,6 +66,18 @@ class Player:
             self.dash_cooldown -= 1
         if self.invincibility_timer > 0:
             self.invincibility_timer -= 1
+
+        # Apply knockback velocity with friction
+        if self.knockback_velocity[0] != 0 or self.knockback_velocity[1] != 0:
+            self._try_move(self.knockback_velocity[0], self.knockback_velocity[1], obstacles)
+            # Apply friction to knockback
+            self.knockback_velocity[0] *= 0.85
+            self.knockback_velocity[1] *= 0.85
+            # Stop knockback if velocity is very small
+            if abs(self.knockback_velocity[0]) < 0.1:
+                self.knockback_velocity[0] = 0
+            if abs(self.knockback_velocity[1]) < 0.1:
+                self.knockback_velocity[1] = 0
 
         # Handle dash movement
         if self.is_dashing:
@@ -170,6 +186,21 @@ class Player:
             True if player is invincible
         """
         return self.invincibility_timer > 0
+
+    def apply_knockback(self, knockback_power, direction_x, direction_y):
+        """Apply knockback force to the player
+
+        Args:
+            knockback_power: Base knockback power
+            direction_x: X component of knockback direction (normalized)
+            direction_y: Y component of knockback direction (normalized)
+        """
+        # Calculate actual knockback based on resistance
+        actual_knockback = knockback_power * (1 - self.knockback_resistance)
+
+        # Apply knockback velocity
+        self.knockback_velocity[0] = direction_x * actual_knockback
+        self.knockback_velocity[1] = direction_y * actual_knockback
 
     def fire_projectile(self, target_x, target_y):
         """Fire a projectile towards the target position
