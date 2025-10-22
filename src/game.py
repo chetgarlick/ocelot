@@ -8,6 +8,7 @@ from src.player import Player
 from src.world import World
 from src.camera import Camera
 from src.menu import MainMenu, OptionsMenu, PauseMenu
+from src.explosion import Explosion
 
 
 class Game:
@@ -34,6 +35,7 @@ class Game:
         self.world = None
         self.player = None
         self.camera = None
+        self.explosions = []
 
         # Create menus
         self._create_menus()
@@ -71,6 +73,7 @@ class Game:
             self.world.world_width,
             self.world.world_height
         )
+        self.explosions = []
         self.state = "PLAYING"
         return None
 
@@ -128,7 +131,14 @@ class Game:
                         self.running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
-                    if self.current_menu:
+                    if self.state == "PLAYING":
+                        # Fire projectile towards cursor
+                        mouse_pos = pygame.mouse.get_pos()
+                        # Convert screen position to world position
+                        world_x = mouse_pos[0] + self.camera.x
+                        world_y = mouse_pos[1] + self.camera.y
+                        self.player.fire_projectile(world_x, world_y)
+                    elif self.current_menu:
                         self.current_menu.handle_click(event.pos)
 
     def update(self):
@@ -136,14 +146,31 @@ class Game:
         if self.state == "PLAYING":
             keys = pygame.key.get_pressed()
             self.player.update(keys, self.world.obstacles)
+            self.player.update_projectiles()
             self.camera.update(self.player)
 
             # Update enemies
             for enemy in self.world.enemies:
                 enemy.update(self.player, self.world.obstacles)
 
+            # Update explosions
+            for explosion in self.explosions[:]:
+                explosion.update()
+                if not explosion.is_alive():
+                    self.explosions.remove(explosion)
+
             # Check for coin collection
             self._check_coin_collection()
+
+            # Check for projectile-enemy collisions
+            self._check_projectile_collisions()
+
+            # Check for player-enemy collisions
+            self._check_player_enemy_collisions()
+
+            # Check if player is dead
+            if not self.player.is_alive():
+                self._player_died()
         elif self.current_menu:
             mouse_pos = pygame.mouse.get_pos()
             self.current_menu.update(mouse_pos)
@@ -161,6 +188,58 @@ class Game:
         for i in reversed(coins_to_remove):
             self.world.coins.pop(i)
 
+    def _check_projectile_collisions(self):
+        """Check if projectiles hit enemies"""
+        projectiles_to_remove = []
+        enemies_to_remove = []
+
+        for proj_idx, projectile in enumerate(self.player.projectiles):
+            for enemy_idx, enemy in enumerate(self.world.enemies):
+                if projectile.rect.colliderect(enemy.rect):
+                    # Projectile hit enemy
+                    enemy.take_damage(10)  # 10 damage per projectile
+                    projectiles_to_remove.append(proj_idx)
+
+                    # Check if enemy died
+                    if not enemy.is_alive():
+                        # Create explosion at enemy position
+                        self.explosions.append(Explosion(enemy.x + enemy.width // 2,
+                                                        enemy.y + enemy.height // 2))
+                        enemies_to_remove.append(enemy_idx)
+                    break
+
+        # Remove hit projectiles (in reverse order)
+        for idx in reversed(sorted(set(projectiles_to_remove))):
+            if idx < len(self.player.projectiles):
+                self.player.projectiles.pop(idx)
+
+        # Remove dead enemies (in reverse order)
+        for idx in reversed(sorted(set(enemies_to_remove))):
+            if idx < len(self.world.enemies):
+                self.world.enemies.pop(idx)
+
+    def _check_player_enemy_collisions(self):
+        """Check if player touches enemies and takes damage"""
+        if not hasattr(self.player, 'damage_cooldown'):
+            self.player.damage_cooldown = 0
+
+        # Update cooldown
+        if self.player.damage_cooldown > 0:
+            self.player.damage_cooldown -= 1
+
+        # Check collisions
+        for enemy in self.world.enemies:
+            if self.player.rect.colliderect(enemy.rect):
+                if self.player.damage_cooldown <= 0:
+                    self.player.take_damage(10)  # 10 damage per hit
+                    self.player.damage_cooldown = 60  # 1 second cooldown at 60 FPS
+
+    def _player_died(self):
+        """Handle player death"""
+        # Return to main menu
+        self.current_menu = self.main_menu
+        self.state = "MAIN_MENU"
+
     def draw(self):
         """Draw everything to the screen"""
         if self.state == "PLAYING":
@@ -168,6 +247,14 @@ class Game:
 
             # Draw world with camera offset
             self.world.draw(self.screen, self.camera)
+
+            # Draw projectiles
+            for projectile in self.player.projectiles:
+                projectile.draw(self.screen, self.camera)
+
+            # Draw explosions
+            for explosion in self.explosions:
+                explosion.draw(self.screen, self.camera)
 
             # Draw player with camera offset
             player_rect = self.camera.apply(self.player)
@@ -179,6 +266,15 @@ class Game:
             # Draw game in background
             self.screen.fill(self.config.BG_COLOR)
             self.world.draw(self.screen, self.camera)
+
+            # Draw projectiles
+            for projectile in self.player.projectiles:
+                projectile.draw(self.screen, self.camera)
+
+            # Draw explosions
+            for explosion in self.explosions:
+                explosion.draw(self.screen, self.camera)
+
             player_rect = self.camera.apply(self.player)
             self.screen.blit(self.player.image, player_rect)
             self._draw_ui()

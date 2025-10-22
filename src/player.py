@@ -3,7 +3,9 @@ Player class - represents the player character
 """
 
 import pygame
+import math
 from src.config import Config
+from src.projectile import Projectile
 
 
 class Player:
@@ -29,6 +31,10 @@ class Player:
         # HP system
         self.max_hp = 100
         self.current_hp = self.max_hp
+
+        # Combat
+        self.projectiles = []
+        self.attack_cooldown = 0  # Frames until next attack is allowed
 
     def update(self, keys, obstacles=None):
         """Update player position based on input
@@ -105,6 +111,36 @@ class Player:
             True if HP > 0, False otherwise
         """
         return self.current_hp > 0
+
+    def fire_projectile(self, target_x, target_y):
+        """Fire a projectile towards the target position
+
+        Args:
+            target_x: Target x position (usually cursor)
+            target_y: Target y position (usually cursor)
+        """
+        if self.attack_cooldown <= 0:
+            # Create projectile from player center
+            projectile = Projectile(
+                self.x + self.width // 2,
+                self.y + self.height // 2,
+                target_x,
+                target_y
+            )
+            self.projectiles.append(projectile)
+            self.attack_cooldown = 15  # 0.25 second cooldown at 60 FPS
+
+    def update_projectiles(self):
+        """Update all projectiles and remove dead ones"""
+        # Update cooldown
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
+
+        # Update projectiles
+        for projectile in self.projectiles[:]:
+            projectile.update()
+            if not projectile.is_alive():
+                self.projectiles.remove(projectile)
 
     def draw(self, surface):
         """Draw the player to the screen"""
