@@ -17,11 +17,14 @@ class Player:
         self.width = self.config.PLAYER_SIZE
         self.height = self.config.PLAYER_SIZE
         self.speed = self.config.PLAYER_SPEED
-        
+
         # Create a simple colored rectangle for the player
         self.image = pygame.Surface((self.width, self.height))
         self.image.fill((100, 149, 237))  # Blue color (cornflower blue)
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+        # Coin collection
+        self.coins_collected = 0
 
     def update(self, keys, obstacles=None):
         """Update player position based on input
@@ -70,6 +73,10 @@ class Player:
         # No collision, update position
         self.x = new_x
         self.y = new_y
+
+    def collect_coin(self):
+        """Collect a coin and increment the counter"""
+        self.coins_collected += 1
 
     def draw(self, surface):
         """Draw the player to the screen"""

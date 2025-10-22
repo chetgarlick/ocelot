@@ -5,6 +5,7 @@ World class - manages the game world and tilemap
 import pygame
 from src.config import Config
 from src.obstacle import Obstacle
+from src.coin import Coin
 
 
 class World:
@@ -25,6 +26,10 @@ class World:
         # List of obstacles
         self.obstacles = []
         self._generate_obstacles()
+
+        # List of collectible coins
+        self.coins = []
+        self._generate_coins()
 
     def _generate_tilemap(self):
         """Generate a simple tilemap"""
@@ -81,6 +86,20 @@ class World:
         # Center-right area
         self.obstacles.append(Obstacle(1600, 800, 150, 150))
 
+    def _generate_coins(self):
+        """Generate coins scattered throughout the world"""
+        # Create coins in various locations
+        coin_positions = [
+            (200, 200), (400, 150), (700, 300), (900, 250),
+            (300, 700), (800, 900), (1200, 700), (1400, 600),
+            (500, 1200), (1000, 1400), (1600, 1300), (1900, 1100),
+            (2100, 400), (1800, 800), (600, 1600), (1300, 1600),
+            (400, 900), (1100, 300), (1700, 500), (2200, 1400),
+        ]
+
+        for x, y in coin_positions:
+            self.coins.append(Coin(x, y))
+
     def draw(self, surface, camera):
         """Draw the world to the screen with camera offset
 
@@ -119,4 +138,8 @@ class World:
             if -obstacle.width < obstacle_rect.x < camera.width and \
                -obstacle.height < obstacle_rect.y < camera.height:
                 surface.blit(obstacle.image, obstacle_rect)
+
+        # Draw coins
+        for coin in self.coins:
+            coin.draw(surface, camera)
 

@@ -65,4 +65,5 @@ Thumbs.db
 # Game-specific
 *.log
 saves/
+run
 
