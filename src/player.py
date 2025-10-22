@@ -23,19 +23,53 @@ class Player:
         self.image.fill((255, 100, 100))  # Red color
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
-    def update(self, keys):
-        """Update player position based on input"""
+    def update(self, keys, obstacles=None):
+        """Update player position based on input
+
+        Args:
+            keys: Pygame key states
+            obstacles: List of obstacles to check collision against
+        """
+        if obstacles is None:
+            obstacles = []
+
+        # Handle movement with collision detection
         if keys[pygame.K_UP] or keys[pygame.K_w]:
-            self.y -= self.speed
+            self._try_move(0, -self.speed, obstacles)
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            self.y += self.speed
+            self._try_move(0, self.speed, obstacles)
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            self.x -= self.speed
+            self._try_move(-self.speed, 0, obstacles)
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            self.x += self.speed
-        
+            self._try_move(self.speed, 0, obstacles)
+
         # Update rect position
         self.rect.topleft = (self.x, self.y)
+
+    def _try_move(self, dx, dy, obstacles):
+        """Try to move the player, checking for collisions
+
+        Args:
+            dx: Change in x
+            dy: Change in y
+            obstacles: List of obstacles to check against
+        """
+        # Calculate new position
+        new_x = self.x + dx
+        new_y = self.y + dy
+
+        # Create a test rect at the new position
+        test_rect = pygame.Rect(new_x, new_y, self.width, self.height)
+
+        # Check collision with obstacles
+        for obstacle in obstacles:
+            if test_rect.colliderect(obstacle.rect):
+                # Collision detected, don't move
+                return
+
+        # No collision, update position
+        self.x = new_x
+        self.y = new_y
 
     def draw(self, surface):
         """Draw the player to the screen"""

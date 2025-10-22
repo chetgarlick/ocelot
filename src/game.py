@@ -26,7 +26,8 @@ class Game:
         
         # Initialize game objects
         self.world = World()
-        self.player = Player(self.config.SCREEN_WIDTH // 2, self.config.SCREEN_HEIGHT // 2)
+        # Spawn player in a safe location (bottom-left area)
+        self.player = Player(50, 400)
 
     def handle_events(self):
         """Handle input events"""
@@ -40,7 +41,7 @@ class Game:
     def update(self):
         """Update game state"""
         keys = pygame.key.get_pressed()
-        self.player.update(keys)
+        self.player.update(keys, self.world.obstacles)
 
     def draw(self):
         """Draw everything to the screen"""
