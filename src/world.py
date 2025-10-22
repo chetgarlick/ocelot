@@ -39,6 +39,21 @@ class World:
 
     def _generate_obstacles(self):
         """Generate obstacles in the world"""
+        # Create world boundaries (invisible walls at edges)
+        boundary_thickness = 50
+
+        # Top boundary
+        self.obstacles.append(Obstacle(0, -boundary_thickness, self.world_width, boundary_thickness))
+
+        # Bottom boundary
+        self.obstacles.append(Obstacle(0, self.world_height, self.world_width, boundary_thickness))
+
+        # Left boundary
+        self.obstacles.append(Obstacle(-boundary_thickness, 0, boundary_thickness, self.world_height))
+
+        # Right boundary
+        self.obstacles.append(Obstacle(self.world_width, 0, boundary_thickness, self.world_height))
+
         # Create obstacles scattered throughout the larger world
 
         # Top-left area
