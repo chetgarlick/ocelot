@@ -20,7 +20,7 @@ class Player:
         
         # Create a simple colored rectangle for the player
         self.image = pygame.Surface((self.width, self.height))
-        self.image.fill((255, 100, 100))  # Red color
+        self.image.fill((100, 149, 237))  # Blue color (cornflower blue)
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
     def update(self, keys, obstacles=None):
