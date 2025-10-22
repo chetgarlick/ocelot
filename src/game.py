@@ -129,6 +129,10 @@ class Game:
                         self._resume_game()
                     elif self.state in ["MAIN_MENU", "OPTIONS_MENU"]:
                         self.running = False
+                elif event.key == pygame.K_SPACE:
+                    if self.state == "PLAYING":
+                        # Initiate dash in direction of current movement
+                        self._initiate_dash()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
                     if self.state == "PLAYING":
@@ -227,18 +231,39 @@ class Game:
         if self.player.damage_cooldown > 0:
             self.player.damage_cooldown -= 1
 
-        # Check collisions
-        for enemy in self.world.enemies:
-            if self.player.rect.colliderect(enemy.rect):
-                if self.player.damage_cooldown <= 0:
-                    self.player.take_damage(10)  # 10 damage per hit
-                    self.player.damage_cooldown = 60  # 1 second cooldown at 60 FPS
+        # Check collisions (skip if player is invincible)
+        if not self.player.is_invincible():
+            for enemy in self.world.enemies:
+                if self.player.rect.colliderect(enemy.rect):
+                    if self.player.damage_cooldown <= 0:
+                        self.player.take_damage(10)  # 10 damage per hit
+                        self.player.damage_cooldown = 60  # 1 second cooldown at 60 FPS
 
     def _player_died(self):
         """Handle player death"""
         # Return to main menu
         self.current_menu = self.main_menu
         self.state = "MAIN_MENU"
+
+    def _initiate_dash(self):
+        """Initiate a dash in the direction of current movement"""
+        keys = pygame.key.get_pressed()
+
+        # Determine dash direction based on current input
+        direction_x = 0
+        direction_y = 0
+
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
+            direction_y -= 1
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+            direction_y += 1
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            direction_x -= 1
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            direction_x += 1
+
+        # Start the dash
+        self.player.start_dash(direction_x, direction_y)
 
     def draw(self):
         """Draw everything to the screen"""
@@ -258,6 +283,11 @@ class Game:
 
             # Draw player with camera offset
             player_rect = self.camera.apply(self.player)
+
+            # Draw dash effect if dashing
+            if self.player.is_dashing:
+                self._draw_dash_effect(player_rect)
+
             self.screen.blit(self.player.image, player_rect)
 
             # Draw UI (coin count in bottom-right)
@@ -276,6 +306,11 @@ class Game:
                 explosion.draw(self.screen, self.camera)
 
             player_rect = self.camera.apply(self.player)
+
+            # Draw dash effect if dashing
+            if self.player.is_dashing:
+                self._draw_dash_effect(player_rect)
+
             self.screen.blit(self.player.image, player_rect)
             self._draw_ui()
 
@@ -366,6 +401,28 @@ class Game:
 
         # Draw text
         self.screen.blit(text_surface, text_rect)
+
+    def _draw_dash_effect(self, player_rect):
+        """Draw a visual effect for the dash
+
+        Args:
+            player_rect: The player's screen position rect
+        """
+        # Create a semi-transparent blue circle around the player
+        dash_radius = int(self.player.width * 1.5)
+
+        # Create a surface for the dash effect
+        dash_surface = pygame.Surface((dash_radius * 2, dash_radius * 2), pygame.SRCALPHA)
+
+        # Draw a glowing circle effect
+        alpha = int(150 * (1 - self.player.dash_timer / self.player.dash_duration))
+        pygame.draw.circle(dash_surface, (100, 200, 255, alpha),
+                         (dash_radius, dash_radius), dash_radius)
+
+        # Blit to screen
+        self.screen.blit(dash_surface,
+                        (player_rect.centerx - dash_radius,
+                         player_rect.centery - dash_radius))
 
     def run(self):
         """Main game loop"""
