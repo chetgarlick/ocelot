@@ -2,8 +2,7 @@
 LevelManager - manages level transitions and level state
 """
 
-from src.village_level import VillageLevel
-from src.combat_level import CombatLevel
+from src.level_loader import load_level
 
 
 class LevelManager:
@@ -23,8 +22,9 @@ class LevelManager:
     
     def _create_levels(self):
         """Create all available levels"""
-        self.levels["village"] = VillageLevel()
-        self.levels["combat"] = CombatLevel()
+        # Load levels from JSON files
+        self.levels["village"] = load_level("village")
+        self.levels["combat"] = load_level("combat")
     
     def load_level(self, level_id):
         """Load a level by ID
