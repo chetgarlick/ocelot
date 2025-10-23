@@ -74,46 +74,55 @@ class Boss(Entity):
     
     def update(self, player, obstacles):
         """Update boss position and attacks
-        
+
         Args:
             player: Player object to target
             obstacles: List of obstacles to check collision against
         """
+        with open('debug.log', 'a') as f:
+            f.write(f"Boss update called. Cooldown: {self.attack_cooldown}\n")
+
         # Apply knockback velocity with friction
         if self.knockback_velocity[0] != 0 or self.knockback_velocity[1] != 0:
             self._try_move(self.knockback_velocity[0], self.knockback_velocity[1], obstacles)
             self.apply_knockback_friction()
-        
+
         # Update attack cooldown
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
-        
+
         # Update attack timer
         self.attack_timer += 1
-        
+
         # Calculate distance to player
         dx = player.x - self.x
         dy = player.y - self.y
         distance_to_player = math.sqrt(dx**2 + dy**2)
-        
+
         # Move towards player
         if distance_to_player > 50:
             direction_x = dx / distance_to_player
             direction_y = dy / distance_to_player
             self._try_move(direction_x * self.speed, direction_y * self.speed, obstacles)
-        
+
         # Perform attacks
         if self.attack_cooldown <= 0:
+            with open('debug.log', 'a') as f:
+                f.write(f"Boss attacking! Cooldown: {self.attack_cooldown}, Projectiles: {len(self.projectiles)}\n")
             self._perform_attack(player)
+
+        # Update rect position for collision detection
+        self.update_position()
     
     def _perform_attack(self, player):
         """Perform a boss attack
-        
+
         Args:
             player: Player object to target
         """
         attack_type = self.attack_patterns[self.attack_sequence % len(self.attack_patterns)]
-        
+        print(f"Boss performing attack: {attack_type}")
+
         if attack_type == BossAttackType.PROJECTILE_BURST:
             self._projectile_burst(player)
         elif attack_type == BossAttackType.CHARGE:
@@ -122,7 +131,7 @@ class Boss(Entity):
             self._spin_attack()
         elif attack_type == BossAttackType.SUMMON_PROJECTILES:
             self._summon_projectiles(player)
-        
+
         self.attack_sequence += 1
         self.attack_cooldown = 120  # 2 seconds between attacks at 60 FPS
     
@@ -146,6 +155,7 @@ class Boss(Entity):
                 speed=4
             )
             projectile.damage = 5  # Set damage as attribute
+            projectile.color = (255, 0, 0)  # Red for boss projectiles
             self.projectiles.append(projectile)
     
     def _charge_attack(self, player):
@@ -181,6 +191,7 @@ class Boss(Entity):
                 speed=3
             )
             projectile.damage = 3  # Set damage as attribute
+            projectile.color = (255, 0, 0)  # Red for boss projectiles
             self.projectiles.append(projectile)
     
     def _summon_projectiles(self, player):
@@ -210,11 +221,12 @@ class Boss(Entity):
                     speed=5
                 )
                 projectile.damage = 4  # Set damage as attribute
+                projectile.color = (255, 0, 0)  # Red for boss projectiles
                 self.projectiles.append(projectile)
     
     def _try_move(self, dx, dy, obstacles):
         """Try to move the boss, checking for collisions
-        
+
         Args:
             dx: Change in x
             dy: Change in y
@@ -222,15 +234,16 @@ class Boss(Entity):
         """
         new_x = self.x + dx
         new_y = self.y + dy
-        
+
         test_rect = pygame.Rect(new_x, new_y, self.width, self.height)
-        
+
         for obstacle in obstacles:
             if test_rect.colliderect(obstacle.rect):
                 return
-        
+
         self.x = new_x
         self.y = new_y
+        self.update_position()  # Update rect to match new position
     
     def generate_loot(self):
         """Generate loot drops when boss dies

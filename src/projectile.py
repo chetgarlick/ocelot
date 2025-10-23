@@ -71,7 +71,7 @@ class Projectile:
 
     def draw(self, surface, camera=None):
         """Draw the projectile to the screen
-        
+
         Args:
             surface: Pygame surface to draw to
             camera: Camera object for offset (optional)
@@ -83,7 +83,7 @@ class Projectile:
         else:
             screen_x = self.x
             screen_y = self.y
-        
+
         # Only draw if on screen
         if -10 < screen_x < surface.get_width() + 10 and \
            -10 < screen_y < surface.get_height() + 10:

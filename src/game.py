@@ -577,6 +577,11 @@ class Game:
                     for projectile in enemy.projectiles:
                         projectile.draw(self.screen, self.camera)
 
+            # Draw boss projectiles
+            if current_level.boss and hasattr(current_level.boss, 'projectiles'):
+                for projectile in current_level.boss.projectiles:
+                    projectile.draw(self.screen, self.camera)
+
             # Draw explosions
             for explosion in self.explosions:
                 explosion.draw(self.screen, self.camera)
@@ -612,6 +617,11 @@ class Game:
                 if hasattr(enemy, 'projectiles'):
                     for projectile in enemy.projectiles:
                         projectile.draw(self.screen, self.camera)
+
+            # Draw boss projectiles
+            if current_level.boss and hasattr(current_level.boss, 'projectiles'):
+                for projectile in current_level.boss.projectiles:
+                    projectile.draw(self.screen, self.camera)
 
             # Draw explosions
             for explosion in self.explosions:
