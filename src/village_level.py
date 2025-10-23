@@ -4,7 +4,6 @@ Village Level - peaceful starting area with buildings and paths
 
 from src.level import Level, ExitZone
 from src.obstacle import Obstacle
-from src.coin import Coin
 
 
 class VillageLevel(Level):
@@ -69,20 +68,20 @@ class VillageLevel(Level):
         self.obstacles.append(Obstacle(415, 350, wall_thickness, 180))
 
         # Middle-right building (enlarged and hollow) - HOLLOW with brown floor
-        # Increased from 150x140 to 180x180
+        # Moved to the right and increased from 150x140 to 180x180
         wall_thickness = 15
         # Brown floor background (visual only - no collision)
-        self.visual_obstacles.append(Obstacle(750, 350, 180, 180, color=brown_floor))
-        # Top wall with large door gap
-        self.obstacles.append(Obstacle(750, 350, 55, wall_thickness))  # Left part
-        self.obstacles.append(Obstacle(875, 350, 55, wall_thickness))  # Right part
-        # Bottom wall with large door gap
-        self.obstacles.append(Obstacle(750, 515, 55, wall_thickness))  # Left part
-        self.obstacles.append(Obstacle(875, 515, 55, wall_thickness))  # Right part
-        # Left wall (no gaps - solid)
-        self.obstacles.append(Obstacle(750, 350, wall_thickness, 180))
-        # Right wall (no gaps - solid)
-        self.obstacles.append(Obstacle(915, 350, wall_thickness, 180))
+        self.visual_obstacles.append(Obstacle(900, 350, 180, 180, color=brown_floor))
+        # Top wall (no gaps - solid)
+        self.obstacles.append(Obstacle(900, 350, 180, wall_thickness))
+        # Bottom wall (no gaps - solid)
+        self.obstacles.append(Obstacle(900, 515, 180, wall_thickness))
+        # Left wall with large door gap
+        self.obstacles.append(Obstacle(900, 350, wall_thickness, 55))  # Top part
+        self.obstacles.append(Obstacle(900, 475, wall_thickness, 60))  # Bottom part
+        # Right wall with large door gap
+        self.obstacles.append(Obstacle(1065, 350, wall_thickness, 55))  # Top part
+        self.obstacles.append(Obstacle(1065, 475, wall_thickness, 60))  # Bottom part
 
         # Bottom-left building (solid) - REMOVED (outskirts)
         # self.obstacles.append(Obstacle(150, 900, 130, 120))
