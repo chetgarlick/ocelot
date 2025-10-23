@@ -8,6 +8,7 @@ from src.level import Level, ExitZone
 from src.obstacle import Obstacle
 from src.coin import Coin
 from src.enemy import Enemy, TankyEnemy, RangedEnemy, FastEnemy
+from src.trap import Trap
 
 
 class JSONLevel(Level):
@@ -80,7 +81,20 @@ class JSONLevel(Level):
                 enemy = Enemy(x, y, patrol_radius)
 
             self.enemies.append(enemy)
-    
+
+    def _generate_traps(self):
+        """Generate traps from JSON data"""
+        for trap_data in self.data.get('traps', []):
+            x = trap_data['x']
+            y = trap_data['y']
+            width = trap_data['width']
+            height = trap_data['height']
+            damage = trap_data.get('damage', 10)
+            trap_type = trap_data.get('type', 'spike')
+
+            trap = Trap(x, y, width, height, damage=damage, trap_type=trap_type)
+            self.traps.append(trap)
+
     def _generate_exits(self):
         """Generate exit zones from JSON data"""
         for exit_data in self.data.get('exits', []):

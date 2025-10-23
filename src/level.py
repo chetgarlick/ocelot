@@ -57,12 +57,14 @@ class Level:
         self.visual_obstacles = []  # Visual-only obstacles (no collision)
         self.coins = []
         self.enemies = []
+        self.traps = []  # Hazards that damage the player
         self.exit_zones = []
         
         # Generate level content
         self._generate_obstacles()
         self._generate_coins()
         self._generate_enemies()
+        self._generate_traps()
         self._generate_exits()
     
     def _generate_tilemap(self):
@@ -99,7 +101,11 @@ class Level:
     def _generate_enemies(self):
         """Generate enemies for this level - override in subclasses"""
         pass
-    
+
+    def _generate_traps(self):
+        """Generate traps for this level - override in subclasses"""
+        pass
+
     def _generate_exits(self):
         """Generate exit zones for this level - override in subclasses"""
         pass
@@ -175,7 +181,11 @@ class Level:
         # Draw coins
         for coin in self.coins:
             coin.draw(surface, camera)
-        
+
+        # Draw traps
+        for trap in self.traps:
+            trap.draw(surface, camera)
+
         # Draw enemies
         for enemy in self.enemies:
             enemy.draw(surface, camera)

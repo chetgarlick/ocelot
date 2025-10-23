@@ -133,6 +133,15 @@
       "target_level": "village",
       "spawn_x": 1400,
       "spawn_y": 400
+    },
+    {
+      "x": 2300,
+      "y": 600,
+      "width": 100,
+      "height": 400,
+      "target_level": "trap_dungeon",
+      "spawn_x": 100,
+      "spawn_y": 600
     }
   ]
 }

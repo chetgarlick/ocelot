@@ -1,0 +1,244 @@
+{
+  "level_id": "trap_dungeon",
+  "world_width": 2400,
+  "world_height": 1800,
+  "obstacles": [
+    {
+      "x": 100,
+      "y": 200,
+      "width": 400,
+      "height": 30,
+      "type": "solid"
+    },
+    {
+      "x": 600,
+      "y": 150,
+      "width": 30,
+      "height": 300,
+      "type": "solid"
+    },
+    {
+      "x": 800,
+      "y": 300,
+      "width": 300,
+      "height": 30,
+      "type": "solid"
+    },
+    {
+      "x": 1200,
+      "y": 100,
+      "width": 30,
+      "height": 400,
+      "type": "solid"
+    },
+    {
+      "x": 1400,
+      "y": 400,
+      "width": 400,
+      "height": 30,
+      "type": "solid"
+    },
+    {
+      "x": 1900,
+      "y": 200,
+      "width": 30,
+      "height": 350,
+      "type": "solid"
+    },
+    {
+      "x": 200,
+      "y": 700,
+      "width": 500,
+      "height": 30,
+      "type": "solid"
+    },
+    {
+      "x": 800,
+      "y": 800,
+      "width": 30,
+      "height": 300,
+      "type": "solid"
+    },
+    {
+      "x": 1000,
+      "y": 1000,
+      "width": 400,
+      "height": 30,
+      "type": "solid"
+    },
+    {
+      "x": 1500,
+      "y": 900,
+      "width": 30,
+      "height": 250,
+      "type": "solid"
+    },
+    {
+      "x": 300,
+      "y": 1400,
+      "width": 600,
+      "height": 30,
+      "type": "solid"
+    },
+    {
+      "x": 1100,
+      "y": 1300,
+      "width": 30,
+      "height": 300,
+      "type": "solid"
+    },
+    {
+      "x": 1400,
+      "y": 1500,
+      "width": 500,
+      "height": 30,
+      "type": "solid"
+    }
+  ],
+  "coins": [
+    {"x": 150, "y": 150},
+    {"x": 500, "y": 100},
+    {"x": 900, "y": 250},
+    {"x": 1300, "y": 50},
+    {"x": 1600, "y": 350},
+    {"x": 2100, "y": 150},
+    {"x": 250, "y": 650},
+    {"x": 900, "y": 750},
+    {"x": 1200, "y": 950},
+    {"x": 1700, "y": 850},
+    {"x": 400, "y": 1350},
+    {"x": 1200, "y": 1250},
+    {"x": 1700, "y": 1450}
+  ],
+  "enemies": [
+    {"x": 700, "y": 500, "type": "normal"},
+    {"x": 1500, "y": 600, "type": "fast"}
+  ],
+  "traps": [
+    {
+      "x": 150,
+      "y": 250,
+      "width": 250,
+      "height": 30,
+      "type": "spike",
+      "damage": 15
+    },
+    {
+      "x": 500,
+      "y": 500,
+      "width": 30,
+      "height": 150,
+      "type": "fire",
+      "damage": 20
+    },
+    {
+      "x": 750,
+      "y": 350,
+      "width": 200,
+      "height": 30,
+      "type": "spike",
+      "damage": 15
+    },
+    {
+      "x": 1100,
+      "y": 550,
+      "width": 30,
+      "height": 200,
+      "type": "acid",
+      "damage": 12
+    },
+    {
+      "x": 1300,
+      "y": 450,
+      "width": 250,
+      "height": 30,
+      "type": "fire",
+      "damage": 20
+    },
+    {
+      "x": 1750,
+      "y": 300,
+      "width": 30,
+      "height": 200,
+      "type": "spike",
+      "damage": 15
+    },
+    {
+      "x": 100,
+      "y": 750,
+      "width": 300,
+      "height": 30,
+      "type": "acid",
+      "damage": 12
+    },
+    {
+      "x": 500,
+      "y": 900,
+      "width": 30,
+      "height": 150,
+      "type": "fire",
+      "damage": 20
+    },
+    {
+      "x": 850,
+      "y": 1100,
+      "width": 200,
+      "height": 30,
+      "type": "spike",
+      "damage": 15
+    },
+    {
+      "x": 1300,
+      "y": 1150,
+      "width": 30,
+      "height": 150,
+      "type": "acid",
+      "damage": 12
+    },
+    {
+      "x": 1600,
+      "y": 1050,
+      "width": 250,
+      "height": 30,
+      "type": "fire",
+      "damage": 20
+    },
+    {
+      "x": 200,
+      "y": 1550,
+      "width": 30,
+      "height": 100,
+      "type": "spike",
+      "damage": 15
+    },
+    {
+      "x": 1000,
+      "y": 1600,
+      "width": 200,
+      "height": 30,
+      "type": "acid",
+      "damage": 12
+    }
+  ],
+  "exits": [
+    {
+      "x": -100,
+      "y": 400,
+      "width": 100,
+      "height": 400,
+      "target_level": "combat",
+      "spawn_x": 2200,
+      "spawn_y": 600
+    },
+    {
+      "x": 2300,
+      "y": 1400,
+      "width": 100,
+      "height": 400,
+      "target_level": "boss_arena",
+      "spawn_x": 100,
+      "spawn_y": 400
+    }
+  ]
+}
+

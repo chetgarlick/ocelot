@@ -25,6 +25,7 @@ class LevelManager:
         # Load levels from JSON files
         self.levels["village"] = load_level("village")
         self.levels["combat"] = load_level("combat")
+        self.levels["trap_dungeon"] = load_level("trap_dungeon")
     
     def load_level(self, level_id):
         """Load a level by ID

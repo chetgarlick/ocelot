@@ -198,6 +198,9 @@ class Game:
             # Check for player-enemy collisions
             self._check_player_enemy_collisions()
 
+            # Check for trap collisions
+            self._check_trap_collisions()
+
             # Check for level transitions
             self._check_level_transition()
 
@@ -306,6 +309,25 @@ class Game:
                             direction_x, direction_y = 1, 0
 
                         self.player.apply_knockback(20, direction_x, direction_y)
+
+    def _check_trap_collisions(self):
+        """Check if player touches traps and takes damage"""
+        current_level = self.level_manager.get_current_level()
+
+        if not hasattr(self.player, 'trap_damage_cooldown'):
+            self.player.trap_damage_cooldown = 0
+
+        # Update cooldown
+        if self.player.trap_damage_cooldown > 0:
+            self.player.trap_damage_cooldown -= 1
+
+        # Check collisions (skip if player is invincible)
+        if not self.player.is_invincible():
+            for trap in current_level.traps:
+                if self.player.rect.colliderect(trap.rect):
+                    if self.player.trap_damage_cooldown <= 0:
+                        self.player.take_damage(trap.damage)
+                        self.player.trap_damage_cooldown = 30  # 0.5 second cooldown at 60 FPS
 
     def _check_loot_collection(self):
         """Check if player collects loot items"""
