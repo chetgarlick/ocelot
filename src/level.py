@@ -53,7 +53,8 @@ class Level:
         self.tiles = self._generate_tilemap()
         
         # Game objects
-        self.obstacles = []
+        self.obstacles = []  # Collision obstacles
+        self.visual_obstacles = []  # Visual-only obstacles (no collision)
         self.coins = []
         self.enemies = []
         self.exit_zones = []
@@ -149,7 +150,18 @@ class Level:
                     # Draw grid lines for visibility
                     pygame.draw.rect(surface, (50, 150, 50), rect, 1)
         
-        # Draw obstacles
+        # Draw visual obstacles (no collision)
+        for obstacle in self.visual_obstacles:
+            obstacle_rect = pygame.Rect(
+                camera.apply_point(obstacle.x, obstacle.y),
+                (obstacle.width, obstacle.height)
+            )
+            # Only draw if visible on screen
+            if -obstacle.width < obstacle_rect.x < camera.width and \
+               -obstacle.height < obstacle_rect.y < camera.height:
+                surface.blit(obstacle.image, obstacle_rect)
+
+        # Draw collision obstacles
         for obstacle in self.obstacles:
             obstacle_rect = pygame.Rect(
                 camera.apply_point(obstacle.x, obstacle.y),

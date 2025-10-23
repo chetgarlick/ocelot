@@ -18,54 +18,91 @@ class VillageLevel(Level):
         """Generate obstacles (buildings and paths) for the village"""
         # Call parent to create boundaries
         super()._generate_obstacles()
-        
+
         # Village buildings (represented as obstacles)
-        # Each building is a simple rectangle
-        
-        # Top-left building
+        # Smaller buildings are solid, larger buildings are hollow (walls only)
+
+        # Brown color for wooden flooring inside buildings
+        brown_floor = (139, 90, 43)
+
+        # Top-left building (solid)
         self.obstacles.append(Obstacle(100, 100, 150, 120))
-        
-        # Top-center building
+
+        # Top-center building (solid)
         self.obstacles.append(Obstacle(500, 80, 180, 140))
-        
-        # Top-right building
-        self.obstacles.append(Obstacle(1000, 120, 160, 130))
-        
-        # Middle-left building
-        self.obstacles.append(Obstacle(80, 450, 140, 150))
-        
-        # Middle-center building (larger - town hall)
-        self.obstacles.append(Obstacle(450, 400, 200, 200))
-        
-        # Middle-right building
-        self.obstacles.append(Obstacle(1050, 480, 150, 140))
-        
-        # Bottom-left building
-        self.obstacles.append(Obstacle(150, 900, 130, 120))
-        
-        # Bottom-center building
+
+        # Top-right building (solid) - REMOVED (outskirts)
+        # self.obstacles.append(Obstacle(1000, 120, 160, 130))
+
+        # Middle-left building (solid) - REMOVED (outskirts)
+        # self.obstacles.append(Obstacle(80, 450, 140, 150))
+
+        # Middle-center building (larger - town hall) - HOLLOW with brown floor
+        wall_thickness = 15
+        # Brown floor background (visual only - no collision)
+        self.visual_obstacles.append(Obstacle(450, 400, 200, 200, color=brown_floor))
+        # Top wall with large door gap (leave gap in middle for player to enter)
+        self.obstacles.append(Obstacle(450, 400, 60, wall_thickness))  # Left part
+        self.obstacles.append(Obstacle(590, 400, 60, wall_thickness))  # Right part
+        # Bottom wall with large door gap
+        self.obstacles.append(Obstacle(450, 585, 60, wall_thickness))  # Left part
+        self.obstacles.append(Obstacle(590, 585, 60, wall_thickness))  # Right part
+        # Left wall (no gaps - solid)
+        self.obstacles.append(Obstacle(450, 400, wall_thickness, 200))
+        # Right wall (no gaps - solid)
+        self.obstacles.append(Obstacle(635, 400, wall_thickness, 200))
+
+        # Middle-left building (enlarged and hollow) - HOLLOW with brown floor
+        # Increased from 140x150 to 180x180
+        wall_thickness = 15
+        # Brown floor background (visual only - no collision)
+        self.visual_obstacles.append(Obstacle(250, 350, 180, 180, color=brown_floor))
+        # Top wall with large door gap
+        self.obstacles.append(Obstacle(250, 350, 55, wall_thickness))  # Left part
+        self.obstacles.append(Obstacle(375, 350, 55, wall_thickness))  # Right part
+        # Bottom wall with large door gap
+        self.obstacles.append(Obstacle(250, 515, 55, wall_thickness))  # Left part
+        self.obstacles.append(Obstacle(375, 515, 55, wall_thickness))  # Right part
+        # Left wall (no gaps - solid)
+        self.obstacles.append(Obstacle(250, 350, wall_thickness, 180))
+        # Right wall (no gaps - solid)
+        self.obstacles.append(Obstacle(415, 350, wall_thickness, 180))
+
+        # Middle-right building (enlarged and hollow) - HOLLOW with brown floor
+        # Increased from 150x140 to 180x180
+        wall_thickness = 15
+        # Brown floor background (visual only - no collision)
+        self.visual_obstacles.append(Obstacle(750, 350, 180, 180, color=brown_floor))
+        # Top wall with large door gap
+        self.obstacles.append(Obstacle(750, 350, 55, wall_thickness))  # Left part
+        self.obstacles.append(Obstacle(875, 350, 55, wall_thickness))  # Right part
+        # Bottom wall with large door gap
+        self.obstacles.append(Obstacle(750, 515, 55, wall_thickness))  # Left part
+        self.obstacles.append(Obstacle(875, 515, 55, wall_thickness))  # Right part
+        # Left wall (no gaps - solid)
+        self.obstacles.append(Obstacle(750, 350, wall_thickness, 180))
+        # Right wall (no gaps - solid)
+        self.obstacles.append(Obstacle(915, 350, wall_thickness, 180))
+
+        # Bottom-left building (solid) - REMOVED (outskirts)
+        # self.obstacles.append(Obstacle(150, 900, 130, 120))
+
+        # Bottom-center building (solid)
         self.obstacles.append(Obstacle(550, 920, 160, 130))
-        
-        # Bottom-right building
-        self.obstacles.append(Obstacle(1100, 880, 140, 150))
-        
-        # Small decorative obstacles (trees, fences, etc.)
-        self.obstacles.append(Obstacle(300, 300, 30, 30))
-        self.obstacles.append(Obstacle(700, 250, 30, 30))
-        self.obstacles.append(Obstacle(1200, 350, 30, 30))
-        self.obstacles.append(Obstacle(400, 700, 30, 30))
-        self.obstacles.append(Obstacle(900, 650, 30, 30))
+
+        # Bottom-right building (solid) - REMOVED (outskirts)
+        # self.obstacles.append(Obstacle(1100, 880, 140, 150))
+
+        # Small decorative obstacles (trees, fences, etc.) - REMOVED (outskirts)
+        # self.obstacles.append(Obstacle(300, 300, 30, 30))
+        # self.obstacles.append(Obstacle(700, 250, 30, 30))
+        # self.obstacles.append(Obstacle(1200, 350, 30, 30))
+        # self.obstacles.append(Obstacle(400, 700, 30, 30))
+        # self.obstacles.append(Obstacle(900, 650, 30, 30))
     
     def _generate_coins(self):
-        """Generate coins scattered throughout the village"""
-        coin_positions = [
-            (250, 250), (600, 200), (1100, 250),
-            (200, 600), (700, 550), (1200, 600),
-            (300, 1000), (800, 1000), (1300, 950),
-        ]
-        
-        for x, y in coin_positions:
-            self.coins.append(Coin(x, y))
+        """Village has no coins - it's a peaceful starting area"""
+        pass
     
     def _generate_enemies(self):
         """Village has no enemies - it's a peaceful starting area"""

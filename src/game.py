@@ -71,8 +71,8 @@ class Game:
         self.level_manager = LevelManager()
         current_level = self.level_manager.get_current_level()
 
-        # Initialize player at starting position
-        self.player = Player(400, 400)
+        # Initialize player at starting position (safe location in village)
+        self.player = Player(600, 250)
 
         # Initialize camera
         self.camera = Camera(
