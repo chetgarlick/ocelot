@@ -46,6 +46,9 @@ class Enemy(Entity):
         self.patrol_radius = patrol_radius
         self.chase_radius = 200  # Distance at which enemy starts chasing player
 
+        # Experience reward
+        self.xp_reward = 10  # Base XP for defeating this enemy
+
         # State
         self.is_chasing = False
         self.patrol_direction = 1  # 1 for right, -1 for left
@@ -235,6 +238,9 @@ class TankyEnemy(Enemy):
         # Update rect
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
+        # Higher XP reward for tanky enemies
+        self.xp_reward = 25
+
 
 class RangedEnemy(Enemy):
     """A ranged enemy that shoots projectiles at the player"""
@@ -264,6 +270,9 @@ class RangedEnemy(Enemy):
         # Recreate image with different color (purple)
         self.image = pygame.Surface((self.width, self.height))
         self.image.fill((200, 0, 200))  # Purple color
+
+        # Higher XP reward for ranged enemies
+        self.xp_reward = 20
 
     def update(self, player, obstacles):
         """Update ranged enemy with attack behavior
@@ -351,4 +360,7 @@ class FastEnemy(Enemy):
 
         # Update rect
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+        # Lower XP reward for fast enemies (easier to defeat)
+        self.xp_reward = 15
 

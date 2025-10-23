@@ -35,6 +35,16 @@ class Player(Entity):
         # Coin collection
         self.coins_collected = 0
 
+        # Stats system
+        self.level = 1
+        self.experience = 0
+        self.experience_to_level = 100  # XP needed to reach next level
+
+        # Base stats
+        self.strength = 1.0  # Multiplier for projectile damage (base 10 damage)
+        self.defense = 1.0  # Multiplier for knockback resistance
+        self.agility = 1.0  # Multiplier for movement speed
+
         # Combat
         self.projectiles = []
         self.attack_cooldown = 0  # Frames until next attack is allowed
@@ -163,12 +173,13 @@ class Player(Entity):
             target_y: Target y position (usually cursor)
         """
         if self.attack_cooldown <= 0:
-            # Create projectile from player center
+            # Create projectile from player center with strength-based damage
             projectile = Projectile(
                 self.x + self.width // 2,
                 self.y + self.height // 2,
                 target_x,
-                target_y
+                target_y,
+                knockback_power=int(5 * self.strength)  # Scale knockback with strength
             )
             self.projectiles.append(projectile)
             self.attack_cooldown = 15  # 0.25 second cooldown at 60 FPS
@@ -184,6 +195,37 @@ class Player(Entity):
             projectile.update()
             if not projectile.is_alive():
                 self.projectiles.remove(projectile)
+
+    def gain_experience(self, amount):
+        """Gain experience points and check for level up
+
+        Args:
+            amount: Amount of XP to gain
+        """
+        self.experience += amount
+
+        # Check if leveled up
+        while self.experience >= self.experience_to_level:
+            self._level_up()
+
+    def _level_up(self):
+        """Handle level up - increase stats and reset XP"""
+        self.level += 1
+        self.experience -= self.experience_to_level
+
+        # Increase XP requirement for next level (scales with level)
+        self.experience_to_level = int(100 * (1.1 ** (self.level - 1)))
+
+        # Increase stats on level up
+        self.strength += 0.1  # +10% damage per level
+        self.defense += 0.05  # +5% knockback resistance per level
+        self.agility += 0.05  # +5% movement speed per level
+
+        # Update knockback resistance based on defense stat
+        self.knockback_resistance = 0.7 * self.defense
+
+        # Update speed based on agility stat
+        self.speed = self.config.PLAYER_SPEED * self.agility
 
     def draw(self, surface):
         """Draw the player to the screen"""

@@ -219,8 +219,9 @@ class Game:
         for proj_idx, projectile in enumerate(self.player.projectiles):
             for enemy_idx, enemy in enumerate(self.world.enemies):
                 if projectile.rect.colliderect(enemy.rect):
-                    # Projectile hit enemy
-                    enemy.take_damage(10)  # 10 damage per projectile
+                    # Projectile hit enemy - damage scales with player strength
+                    damage = int(10 * self.player.strength)
+                    enemy.take_damage(damage)
                     projectiles_to_remove.append(proj_idx)
 
                     # Apply knockback to enemy
@@ -245,6 +246,9 @@ class Game:
                         # Generate loot drops
                         loot_drops = enemy.generate_loot()
                         self.loot_items.extend(loot_drops)
+
+                        # Award XP to player
+                        self.player.gain_experience(enemy.xp_reward)
 
                         enemies_to_remove.append(enemy_idx)
                     break
@@ -451,6 +455,12 @@ class Game:
         # Draw coin count (bottom-right)
         self._draw_coin_count()
 
+        # Draw level and stats (top-left)
+        self._draw_level_and_stats()
+
+        # Draw XP bar (top-right)
+        self._draw_xp_bar()
+
     def _draw_hp_bar(self):
         """Draw the player's HP bar in the bottom-left corner"""
         # HP bar dimensions
@@ -540,6 +550,68 @@ class Game:
         self.screen.blit(dash_surface,
                         (player_rect.centerx - dash_radius,
                          player_rect.centery - dash_radius))
+
+    def _draw_level_and_stats(self):
+        """Draw player level and stats in the top-left corner"""
+        font_large = pygame.font.Font(None, 32)
+        font_small = pygame.font.Font(None, 20)
+
+        padding = 10
+        x = padding
+        y = padding
+        line_height = 28
+
+        # Draw level
+        level_text = f"Level {self.player.level}"
+        level_surface = font_large.render(level_text, True, (255, 215, 0))  # Gold
+        self.screen.blit(level_surface, (x, y))
+        y += line_height
+
+        # Draw stats
+        strength_text = f"STR: {self.player.strength:.1f}"
+        strength_surface = font_small.render(strength_text, True, (255, 100, 100))  # Red
+        self.screen.blit(strength_surface, (x, y))
+        y += line_height - 5
+
+        defense_text = f"DEF: {self.player.defense:.1f}"
+        defense_surface = font_small.render(defense_text, True, (100, 150, 255))  # Blue
+        self.screen.blit(defense_surface, (x, y))
+        y += line_height - 5
+
+        agility_text = f"AGI: {self.player.agility:.1f}"
+        agility_surface = font_small.render(agility_text, True, (100, 255, 100))  # Green
+        self.screen.blit(agility_surface, (x, y))
+
+    def _draw_xp_bar(self):
+        """Draw the XP progress bar in the top-right corner"""
+        bar_width = 250
+        bar_height = 20
+        padding = 10
+
+        # Position in top-right corner
+        bar_x = self.config.SCREEN_WIDTH - bar_width - padding
+        bar_y = padding
+
+        # Calculate XP percentage
+        xp_percentage = self.player.experience / self.player.experience_to_level
+        xp_percentage = min(xp_percentage, 1.0)  # Cap at 100%
+        filled_width = int(bar_width * xp_percentage)
+
+        # Draw background (dark)
+        bg_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
+        pygame.draw.rect(self.screen, (50, 50, 50), bg_rect)
+        pygame.draw.rect(self.screen, (200, 200, 200), bg_rect, 2)  # Border
+
+        # Draw filled portion (blue)
+        filled_rect = pygame.Rect(bar_x, bar_y, filled_width, bar_height)
+        pygame.draw.rect(self.screen, (100, 150, 255), filled_rect)
+
+        # Draw XP text
+        font = pygame.font.Font(None, 18)
+        xp_text = f"{self.player.experience}/{self.player.experience_to_level}"
+        text_surface = font.render(xp_text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=bg_rect.center)
+        self.screen.blit(text_surface, text_rect)
 
     def run(self):
         """Main game loop"""
