@@ -161,6 +161,9 @@ class Game:
             for enemy in self.world.enemies:
                 enemy.update(self.player, self.world.obstacles)
 
+            # Update enemy projectiles
+            self._update_enemy_projectiles()
+
             # Update explosions
             for explosion in self.explosions[:]:
                 explosion.update()
@@ -181,6 +184,9 @@ class Game:
 
             # Check for projectile-enemy collisions
             self._check_projectile_collisions()
+
+            # Check for enemy projectile-player collisions
+            self._check_enemy_projectile_collisions()
 
             # Check for player-enemy collisions
             self._check_player_enemy_collisions()
@@ -292,6 +298,44 @@ class Game:
                 # Remove loot
                 self.loot_items.remove(loot)
 
+    def _update_enemy_projectiles(self):
+        """Update all enemy projectiles"""
+        for enemy in self.world.enemies:
+            # Only ranged enemies have projectiles
+            if hasattr(enemy, 'projectiles'):
+                for projectile in enemy.projectiles[:]:
+                    projectile.update()
+                    if not projectile.is_alive():
+                        enemy.projectiles.remove(projectile)
+
+    def _check_enemy_projectile_collisions(self):
+        """Check if enemy projectiles hit the player"""
+        for enemy in self.world.enemies:
+            if not hasattr(enemy, 'projectiles'):
+                continue
+
+            for projectile in enemy.projectiles[:]:
+                if self.player.rect.colliderect(projectile.rect):
+                    # Enemy projectile hit player
+                    if self.player.invincibility_timer == 0:  # Only take damage if not invincible
+                        self.player.take_damage(5)  # 5 damage from enemy projectile
+                        self.player.damage_cooldown = 60  # 1 second cooldown at 60 FPS
+
+                        # Apply knockback to player
+                        dx = self.player.x - projectile.x
+                        dy = self.player.y - projectile.y
+                        distance = math.sqrt(dx**2 + dy**2)
+                        if distance > 0:
+                            direction_x = dx / distance
+                            direction_y = dy / distance
+                        else:
+                            direction_x, direction_y = 1, 0
+
+                        self.player.apply_knockback(projectile.knockback_power, direction_x, direction_y)
+
+                    # Remove projectile
+                    enemy.projectiles.remove(projectile)
+
     def _player_died(self):
         """Handle player death"""
         # Return to main menu
@@ -330,6 +374,12 @@ class Game:
             for projectile in self.player.projectiles:
                 projectile.draw(self.screen, self.camera)
 
+            # Draw enemy projectiles
+            for enemy in self.world.enemies:
+                if hasattr(enemy, 'projectiles'):
+                    for projectile in enemy.projectiles:
+                        projectile.draw(self.screen, self.camera)
+
             # Draw explosions
             for explosion in self.explosions:
                 explosion.draw(self.screen, self.camera)
@@ -357,6 +407,12 @@ class Game:
             # Draw projectiles
             for projectile in self.player.projectiles:
                 projectile.draw(self.screen, self.camera)
+
+            # Draw enemy projectiles
+            for enemy in self.world.enemies:
+                if hasattr(enemy, 'projectiles'):
+                    for projectile in enemy.projectiles:
+                        projectile.draw(self.screen, self.camera)
 
             # Draw explosions
             for explosion in self.explosions:

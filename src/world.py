@@ -3,10 +3,11 @@ World class - manages the game world and tilemap
 """
 
 import pygame
+import random
 from src.config import Config
 from src.obstacle import Obstacle
 from src.coin import Coin
-from src.enemy import Enemy
+from src.enemy import Enemy, TankyEnemy, RangedEnemy, FastEnemy
 
 
 class World:
@@ -108,16 +109,24 @@ class World:
     def _generate_enemies(self):
         """Generate enemies scattered throughout the world"""
         # Create enemies in various locations with patrol areas
+        # Format: (x, y, patrol_radius, enemy_type)
         enemy_positions = [
-            (400, 400, 150),    # (x, y, patrol_radius)
-            (1200, 300, 150),
-            (1600, 1000, 150),
-            (800, 1400, 150),
-            (2000, 600, 150),
+            (400, 400, 150, "normal"),      # Normal red enemy
+            (1200, 300, 150, "tanky"),      # Tanky blue enemy
+            (1600, 1000, 150, "ranged"),    # Ranged purple enemy
+            (800, 1400, 150, "fast"),       # Fast green enemy
+            (2000, 600, 150, "normal"),     # Another normal enemy
         ]
 
-        for x, y, patrol_radius in enemy_positions:
-            self.enemies.append(Enemy(x, y, patrol_radius))
+        for x, y, patrol_radius, enemy_type in enemy_positions:
+            if enemy_type == "tanky":
+                self.enemies.append(TankyEnemy(x, y, patrol_radius))
+            elif enemy_type == "ranged":
+                self.enemies.append(RangedEnemy(x, y, patrol_radius))
+            elif enemy_type == "fast":
+                self.enemies.append(FastEnemy(x, y, patrol_radius))
+            else:  # normal
+                self.enemies.append(Enemy(x, y, patrol_radius))
 
     def draw(self, surface, camera):
         """Draw the world to the screen with camera offset

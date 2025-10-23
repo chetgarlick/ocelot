@@ -5,9 +5,18 @@ Enemy class - represents an enemy that patrols and chases the player
 import pygame
 import math
 import random
+from enum import Enum
 from src.config import Config
 from src.entity import Entity
 from src.loot import HealthPotion, CoinDrop
+
+
+class EnemyType(Enum):
+    """Enum for different enemy types"""
+    NORMAL = "normal"
+    TANKY = "tanky"
+    RANGED = "ranged"
+    FAST = "fast"
 
 
 class Enemy(Entity):
@@ -196,4 +205,150 @@ class Enemy(Entity):
                     self.chase_radius,
                     1  # Outline only
                 )
+
+
+class TankyEnemy(Enemy):
+    """A tanky enemy with high HP, slow speed, and high knockback resistance"""
+
+    def __init__(self, x, y, patrol_radius=150):
+        """Initialize a tanky enemy
+
+        Args:
+            x: X position in world coordinates
+            y: Y position in world coordinates
+            patrol_radius: Radius of the patrol area around the starting position
+        """
+        super().__init__(x, y, patrol_radius)
+
+        # Override stats for tanky behavior
+        self.max_hp = 60  # Double the normal HP
+        self.current_hp = self.max_hp
+        self.speed = 1  # Half the normal speed
+        self.knockback_resistance = 0.6  # Much more resistant to knockback
+        self.width = 32  # Larger size
+        self.height = 32
+
+        # Recreate image with larger size and different color (blue)
+        self.image = pygame.Surface((self.width, self.height))
+        self.image.fill((0, 100, 255))  # Blue color
+
+        # Update rect
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+
+class RangedEnemy(Enemy):
+    """A ranged enemy that shoots projectiles at the player"""
+
+    def __init__(self, x, y, patrol_radius=150):
+        """Initialize a ranged enemy
+
+        Args:
+            x: X position in world coordinates
+            y: Y position in world coordinates
+            patrol_radius: Radius of the patrol area around the starting position
+        """
+        super().__init__(x, y, patrol_radius)
+
+        # Override stats for ranged behavior
+        self.max_hp = 20  # Lower HP than normal
+        self.current_hp = self.max_hp
+        self.speed = 1.5  # Slightly slower
+        self.knockback_resistance = 0.2  # Less resistant to knockback
+
+        # Ranged-specific properties
+        self.projectiles = []
+        self.attack_cooldown = 0
+        self.attack_cooldown_max = 120  # Fire every 2 seconds
+        self.attack_range = 250  # Range at which to start attacking
+
+        # Recreate image with different color (purple)
+        self.image = pygame.Surface((self.width, self.height))
+        self.image.fill((200, 0, 200))  # Purple color
+
+    def update(self, player, obstacles):
+        """Update ranged enemy with attack behavior
+
+        Args:
+            player: Player object to chase or attack
+            obstacles: List of obstacles to check collision against
+        """
+        # Call parent update for movement
+        super().update(player, obstacles)
+
+        # Update attack cooldown
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
+
+        # Check if player is in attack range
+        dx = player.x - self.x
+        dy = player.y - self.y
+        distance_to_player = math.sqrt(dx**2 + dy**2)
+
+        if distance_to_player < self.attack_range and self.attack_cooldown == 0:
+            self._fire_at_player(player)
+            self.attack_cooldown = self.attack_cooldown_max
+
+    def _fire_at_player(self, player):
+        """Fire a projectile at the player
+
+        Args:
+            player: Player object to target
+        """
+        from src.projectile import Projectile
+
+        # Calculate direction to player
+        dx = player.x - self.x
+        dy = player.y - self.y
+        distance = math.sqrt(dx**2 + dy**2)
+
+        if distance > 0:
+            # Normalize direction
+            target_x = self.x + (dx / distance) * 500  # Fire in direction of player
+            target_y = self.y + (dy / distance) * 500
+        else:
+            target_x = self.x + 500
+            target_y = self.y
+
+        # Create projectile (orange color for enemy projectiles)
+        projectile = Projectile(
+            self.x + self.width // 2,
+            self.y + self.height // 2,
+            target_x,
+            target_y,
+            speed=6,
+            knockback_power=3
+        )
+        self.projectiles.append(projectile)
+
+
+class FastEnemy(Enemy):
+    """A fast enemy with low HP and aggressive behavior"""
+
+    def __init__(self, x, y, patrol_radius=150):
+        """Initialize a fast enemy
+
+        Args:
+            x: X position in world coordinates
+            y: Y position in world coordinates
+            patrol_radius: Radius of the patrol area around the starting position
+        """
+        super().__init__(x, y, patrol_radius)
+
+        # Override stats for fast behavior
+        self.max_hp = 15  # Lower HP than normal
+        self.current_hp = self.max_hp
+        self.speed = 4  # Double the normal speed
+        self.knockback_resistance = 0.1  # Very susceptible to knockback
+        self.chase_radius = 300  # Chases from farther away
+
+        # Smaller size
+        self.width = 16
+        self.height = 16
+
+        # Recreate image with smaller size and different color (green)
+        self.image = pygame.Surface((self.width, self.height))
+        self.image.fill((0, 255, 0))  # Green color
+
+        # Update rect
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
