@@ -6,7 +6,7 @@ import pygame
 import math
 from src.config import Config
 from src.player import Player
-from src.world import World
+from src.level_manager import LevelManager
 from src.camera import Camera
 from src.menu import MainMenu, OptionsMenu, PauseMenu
 from src.explosion import Explosion
@@ -34,7 +34,7 @@ class Game:
         self.current_menu = None
 
         # Initialize game objects (but don't create them yet)
-        self.world = None
+        self.level_manager = None
         self.player = None
         self.camera = None
         self.explosions = []
@@ -67,14 +67,19 @@ class Game:
 
     def _start_game(self):
         """Start the game"""
-        # Initialize game objects
-        self.world = World()
-        self.player = Player(50, 400)
+        # Initialize level manager
+        self.level_manager = LevelManager()
+        current_level = self.level_manager.get_current_level()
+
+        # Initialize player at starting position
+        self.player = Player(400, 400)
+
+        # Initialize camera
         self.camera = Camera(
             self.config.SCREEN_WIDTH,
             self.config.SCREEN_HEIGHT,
-            self.world.world_width,
-            self.world.world_height
+            current_level.world_width,
+            current_level.world_height
         )
         self.explosions = []
         self.loot_items = []
@@ -152,14 +157,16 @@ class Game:
     def update(self):
         """Update game state"""
         if self.state == "PLAYING":
+            current_level = self.level_manager.get_current_level()
+
             keys = pygame.key.get_pressed()
-            self.player.update(keys, self.world.obstacles)
+            self.player.update(keys, current_level.obstacles)
             self.player.update_projectiles()
             self.camera.update(self.player)
 
             # Update enemies
-            for enemy in self.world.enemies:
-                enemy.update(self.player, self.world.obstacles)
+            for enemy in current_level.enemies:
+                enemy.update(self.player, current_level.obstacles)
 
             # Update enemy projectiles
             self._update_enemy_projectiles()
@@ -191,6 +198,9 @@ class Game:
             # Check for player-enemy collisions
             self._check_player_enemy_collisions()
 
+            # Check for level transitions
+            self._check_level_transition()
+
             # Check if player is dead
             if not self.player.is_alive():
                 self._player_died()
@@ -200,24 +210,26 @@ class Game:
 
     def _check_coin_collection(self):
         """Check if player collides with any coins and collect them"""
+        current_level = self.level_manager.get_current_level()
         coins_to_remove = []
 
-        for i, coin in enumerate(self.world.coins):
+        for i, coin in enumerate(current_level.coins):
             if self.player.rect.colliderect(coin.rect):
                 self.player.collect_coin()
                 coins_to_remove.append(i)
 
         # Remove collected coins (in reverse order to maintain indices)
         for i in reversed(coins_to_remove):
-            self.world.coins.pop(i)
+            current_level.coins.pop(i)
 
     def _check_projectile_collisions(self):
         """Check if projectiles hit enemies"""
+        current_level = self.level_manager.get_current_level()
         projectiles_to_remove = []
         enemies_to_remove = []
 
         for proj_idx, projectile in enumerate(self.player.projectiles):
-            for enemy_idx, enemy in enumerate(self.world.enemies):
+            for enemy_idx, enemy in enumerate(current_level.enemies):
                 if projectile.rect.colliderect(enemy.rect):
                     # Projectile hit enemy - damage scales with player strength
                     damage = int(10 * self.player.strength)
@@ -260,11 +272,13 @@ class Game:
 
         # Remove dead enemies (in reverse order)
         for idx in reversed(sorted(set(enemies_to_remove))):
-            if idx < len(self.world.enemies):
-                self.world.enemies.pop(idx)
+            if idx < len(current_level.enemies):
+                current_level.enemies.pop(idx)
 
     def _check_player_enemy_collisions(self):
         """Check if player touches enemies and takes damage"""
+        current_level = self.level_manager.get_current_level()
+
         if not hasattr(self.player, 'damage_cooldown'):
             self.player.damage_cooldown = 0
 
@@ -274,7 +288,7 @@ class Game:
 
         # Check collisions (skip if player is invincible)
         if not self.player.is_invincible():
-            for enemy in self.world.enemies:
+            for enemy in current_level.enemies:
                 if self.player.rect.colliderect(enemy.rect):
                     if self.player.damage_cooldown <= 0:
                         self.player.take_damage(10)  # 10 damage per hit
@@ -304,7 +318,9 @@ class Game:
 
     def _update_enemy_projectiles(self):
         """Update all enemy projectiles"""
-        for enemy in self.world.enemies:
+        current_level = self.level_manager.get_current_level()
+
+        for enemy in current_level.enemies:
             # Only ranged enemies have projectiles
             if hasattr(enemy, 'projectiles'):
                 for projectile in enemy.projectiles[:]:
@@ -314,7 +330,9 @@ class Game:
 
     def _check_enemy_projectile_collisions(self):
         """Check if enemy projectiles hit the player"""
-        for enemy in self.world.enemies:
+        current_level = self.level_manager.get_current_level()
+
+        for enemy in current_level.enemies:
             if not hasattr(enemy, 'projectiles'):
                 continue
 
@@ -339,6 +357,42 @@ class Game:
 
                     # Remove projectile
                     enemy.projectiles.remove(projectile)
+
+    def _check_level_transition(self):
+        """Check if player is in an exit zone and transition to new level"""
+        current_level = self.level_manager.get_current_level()
+
+        # Check if player is in any exit zone
+        transition_data = current_level.update(self.player, self.explosions, self.loot_items)
+
+        if transition_data:
+            target_level_id, spawn_x, spawn_y = transition_data
+            self._transition_to_level(target_level_id, spawn_x, spawn_y)
+
+    def _transition_to_level(self, level_id, spawn_x, spawn_y):
+        """Transition to a new level
+
+        Args:
+            level_id: The ID of the level to transition to
+            spawn_x: X position to spawn player in new level
+            spawn_y: Y position to spawn player in new level
+        """
+        # Load the new level
+        new_level = self.level_manager.load_level(level_id)
+
+        # Move player to spawn position
+        self.player.x = spawn_x
+        self.player.y = spawn_y
+        self.player.rect.topleft = (self.player.x, self.player.y)
+
+        # Update camera bounds for new level
+        self.camera.world_width = new_level.world_width
+        self.camera.world_height = new_level.world_height
+        self.camera.update(self.player)
+
+        # Clear explosions and loot from previous level
+        self.explosions = []
+        self.loot_items = []
 
     def _player_died(self):
         """Handle player death"""
@@ -369,17 +423,19 @@ class Game:
     def draw(self):
         """Draw everything to the screen"""
         if self.state == "PLAYING":
+            current_level = self.level_manager.get_current_level()
+
             self.screen.fill(self.config.BG_COLOR)
 
-            # Draw world with camera offset
-            self.world.draw(self.screen, self.camera)
+            # Draw level with camera offset
+            current_level.draw(self.screen, self.camera)
 
             # Draw projectiles
             for projectile in self.player.projectiles:
                 projectile.draw(self.screen, self.camera)
 
             # Draw enemy projectiles
-            for enemy in self.world.enemies:
+            for enemy in current_level.enemies:
                 if hasattr(enemy, 'projectiles'):
                     for projectile in enemy.projectiles:
                         projectile.draw(self.screen, self.camera)
@@ -404,16 +460,18 @@ class Game:
             # Draw UI (coin count in bottom-right)
             self._draw_ui()
         elif self.state == "PAUSED":
+            current_level = self.level_manager.get_current_level()
+
             # Draw game in background
             self.screen.fill(self.config.BG_COLOR)
-            self.world.draw(self.screen, self.camera)
+            current_level.draw(self.screen, self.camera)
 
             # Draw projectiles
             for projectile in self.player.projectiles:
                 projectile.draw(self.screen, self.camera)
 
             # Draw enemy projectiles
-            for enemy in self.world.enemies:
+            for enemy in current_level.enemies:
                 if hasattr(enemy, 'projectiles'):
                     for projectile in enemy.projectiles:
                         projectile.draw(self.screen, self.camera)
