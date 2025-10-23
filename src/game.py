@@ -10,6 +10,7 @@ from src.world import World
 from src.camera import Camera
 from src.menu import MainMenu, OptionsMenu, PauseMenu
 from src.explosion import Explosion
+from src.loot import Loot
 
 
 class Game:
@@ -37,6 +38,7 @@ class Game:
         self.player = None
         self.camera = None
         self.explosions = []
+        self.loot_items = []
 
         # Create menus
         self._create_menus()
@@ -75,6 +77,7 @@ class Game:
             self.world.world_height
         )
         self.explosions = []
+        self.loot_items = []
         self.state = "PLAYING"
         return None
 
@@ -164,8 +167,17 @@ class Game:
                 if not explosion.is_alive():
                     self.explosions.remove(explosion)
 
+            # Update loot items
+            for loot in self.loot_items[:]:
+                loot.update()
+                if not loot.is_alive():
+                    self.loot_items.remove(loot)
+
             # Check for coin collection
             self._check_coin_collection()
+
+            # Check for loot collection
+            self._check_loot_collection()
 
             # Check for projectile-enemy collisions
             self._check_projectile_collisions()
@@ -223,6 +235,11 @@ class Game:
                         # Create explosion at enemy position
                         self.explosions.append(Explosion(enemy.x + enemy.width // 2,
                                                         enemy.y + enemy.height // 2))
+
+                        # Generate loot drops
+                        loot_drops = enemy.generate_loot()
+                        self.loot_items.extend(loot_drops)
+
                         enemies_to_remove.append(enemy_idx)
                     break
 
@@ -266,6 +283,15 @@ class Game:
 
                         self.player.apply_knockback(20, direction_x, direction_y)
 
+    def _check_loot_collection(self):
+        """Check if player collects loot items"""
+        for loot in self.loot_items[:]:
+            if self.player.rect.colliderect(loot.rect):
+                # Apply loot effect to player
+                loot.apply_effect(self.player)
+                # Remove loot
+                self.loot_items.remove(loot)
+
     def _player_died(self):
         """Handle player death"""
         # Return to main menu
@@ -308,6 +334,10 @@ class Game:
             for explosion in self.explosions:
                 explosion.draw(self.screen, self.camera)
 
+            # Draw loot items
+            for loot in self.loot_items:
+                loot.draw(self.screen, self.camera)
+
             # Draw player with camera offset
             player_rect = self.camera.apply(self.player)
 
@@ -331,6 +361,10 @@ class Game:
             # Draw explosions
             for explosion in self.explosions:
                 explosion.draw(self.screen, self.camera)
+
+            # Draw loot items
+            for loot in self.loot_items:
+                loot.draw(self.screen, self.camera)
 
             player_rect = self.camera.apply(self.player)
 

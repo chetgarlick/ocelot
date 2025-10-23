@@ -4,8 +4,10 @@ Enemy class - represents an enemy that patrols and chases the player
 
 import pygame
 import math
+import random
 from src.config import Config
 from src.entity import Entity
+from src.loot import HealthPotion, CoinDrop
 
 
 class Enemy(Entity):
@@ -144,6 +146,32 @@ class Enemy(Entity):
         # No collision, update position
         self.x = new_x
         self.y = new_y
+
+    def generate_loot(self):
+        """Generate loot drops when enemy dies
+
+        Returns:
+            List of loot items dropped by this enemy
+        """
+        loot_drops = []
+
+        # 40% chance to drop a health potion
+        if random.random() < 0.4:
+            loot_drops.append(HealthPotion(
+                self.x + self.width // 2,
+                self.y + self.height // 2,
+                heal_amount=25
+            ))
+
+        # 60% chance to drop a coin
+        if random.random() < 0.6:
+            loot_drops.append(CoinDrop(
+                self.x + self.width // 2,
+                self.y + self.height // 2,
+                coin_value=1
+            ))
+
+        return loot_drops
 
     def draw(self, surface, camera):
         """Draw the enemy to the screen with camera offset
