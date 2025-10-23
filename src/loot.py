@@ -4,6 +4,8 @@ Loot system - items dropped by enemies
 
 import pygame
 import random
+import math
+from src.coin import Coin
 
 
 class Loot:
@@ -11,7 +13,7 @@ class Loot:
 
     def __init__(self, x, y, loot_type="generic"):
         """Initialize a loot item
-        
+
         Args:
             x: X position in world coordinates
             y: Y position in world coordinates
@@ -23,19 +25,43 @@ class Loot:
         self.width = 16
         self.height = 16
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
-        
+
         # Visual properties
         self.image = pygame.Surface((self.width, self.height))
         self.color = (255, 255, 255)  # Default white
         self.image.fill(self.color)
-        
+
         # Lifetime (frames before disappearing)
         self.lifetime = 600  # 10 seconds at 60 FPS
         self.age = 0
 
+        # Velocity for spreading loot
+        angle = random.uniform(0, 2 * math.pi)  # Random direction
+        speed = random.uniform(3, 6)  # Random speed between 3-6 pixels/frame
+        self.velocity_x = math.cos(angle) * speed
+        self.velocity_y = math.sin(angle) * speed
+
+        # Friction to slow down loot
+        self.friction = 0.95
+
     def update(self):
-        """Update loot (age and lifetime)"""
+        """Update loot (age, lifetime, and movement)"""
         self.age += 1
+
+        # Apply velocity
+        self.x += self.velocity_x
+        self.y += self.velocity_y
+
+        # Apply friction to slow down
+        self.velocity_x *= self.friction
+        self.velocity_y *= self.friction
+
+        # Stop moving if velocity is very small
+        if abs(self.velocity_x) < 0.1:
+            self.velocity_x = 0
+        if abs(self.velocity_y) < 0.1:
+            self.velocity_y = 0
+
         self.rect.x = self.x
         self.rect.y = self.y
 
@@ -102,7 +128,7 @@ class CoinDrop(Loot):
 
     def __init__(self, x, y, coin_value=1):
         """Initialize a coin drop
-        
+
         Args:
             x: X position in world coordinates
             y: Y position in world coordinates
@@ -110,14 +136,35 @@ class CoinDrop(Loot):
         """
         super().__init__(x, y, loot_type="coin")
         self.coin_value = coin_value
-        
-        # Yellow color for coins
-        self.color = (255, 255, 0)
-        self.image.fill(self.color)
+
+        # Use the Coin class for rendering
+        self.coin = Coin(x, y)
+        self.image = self.coin.image
+        self.width = self.coin.width
+        self.height = self.coin.height
+
+    def update(self):
+        """Update coin drop (age, lifetime, and movement)"""
+        # Call parent update for velocity and aging
+        super().update()
+        # Update the coin's position
+        self.coin.x = self.x
+        self.coin.y = self.y
+        self.coin.update()
+
+    def draw(self, surface, camera):
+        """Draw the coin to the screen with camera offset
+
+        Args:
+            surface: Pygame surface to draw to
+            camera: Camera object for viewport offset
+        """
+        # Use the coin's draw method
+        self.coin.draw(surface, camera)
 
     def apply_effect(self, player):
         """Add coins to player's collection
-        
+
         Args:
             player: Player object to add coins to
         """
