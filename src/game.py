@@ -168,8 +168,15 @@ class Game:
             for enemy in current_level.enemies:
                 enemy.update(self.player, current_level.obstacles)
 
+            # Update boss
+            if current_level.boss:
+                current_level.boss.update(self.player, current_level.obstacles)
+
             # Update enemy projectiles
             self._update_enemy_projectiles()
+
+            # Update boss projectiles
+            self._update_boss_projectiles()
 
             # Update explosions
             for explosion in self.explosions[:]:
@@ -197,6 +204,9 @@ class Game:
 
             # Check for player-enemy collisions
             self._check_player_enemy_collisions()
+
+            # Check for boss collision
+            self._check_boss_collision()
 
             # Check for trap collisions
             self._check_trap_collisions()
@@ -226,12 +236,49 @@ class Game:
             current_level.coins.pop(i)
 
     def _check_projectile_collisions(self):
-        """Check if projectiles hit enemies"""
+        """Check if projectiles hit enemies or boss"""
         current_level = self.level_manager.get_current_level()
         projectiles_to_remove = []
         enemies_to_remove = []
 
         for proj_idx, projectile in enumerate(self.player.projectiles):
+            # Check collision with boss first
+            if current_level.boss and projectile.rect.colliderect(current_level.boss.rect):
+                # Projectile hit boss - damage scales with player strength
+                damage = int(10 * self.player.strength)
+                current_level.boss.take_damage(damage)
+                projectiles_to_remove.append(proj_idx)
+
+                # Apply knockback to boss
+                dx = current_level.boss.x - projectile.x
+                dy = current_level.boss.y - projectile.y
+                distance = math.sqrt(dx**2 + dy**2)
+                if distance > 0:
+                    direction_x = dx / distance
+                    direction_y = dy / distance
+                else:
+                    direction_x, direction_y = 1, 0
+
+                current_level.boss.apply_knockback(projectile.knockback_power, direction_x, direction_y)
+
+                # Check if boss died
+                if not current_level.boss.is_alive():
+                    # Create explosion at boss position
+                    self.explosions.append(Explosion(current_level.boss.x + current_level.boss.width // 2,
+                                                    current_level.boss.y + current_level.boss.height // 2))
+
+                    # Generate loot drops
+                    loot_drops = current_level.boss.generate_loot()
+                    self.loot_items.extend(loot_drops)
+
+                    # Award XP to player
+                    self.player.gain_experience(current_level.boss.xp_reward)
+
+                    # Boss is dead
+                    current_level.boss = None
+                continue
+
+            # Check collision with enemies
             for enemy_idx, enemy in enumerate(current_level.enemies):
                 if projectile.rect.colliderect(enemy.rect):
                     # Projectile hit enemy - damage scales with player strength
@@ -310,6 +357,39 @@ class Game:
 
                         self.player.apply_knockback(20, direction_x, direction_y)
 
+    def _check_boss_collision(self):
+        """Check if player touches boss and takes damage"""
+        current_level = self.level_manager.get_current_level()
+
+        if not current_level.boss:
+            return
+
+        if not hasattr(self.player, 'boss_damage_cooldown'):
+            self.player.boss_damage_cooldown = 0
+
+        # Update cooldown
+        if self.player.boss_damage_cooldown > 0:
+            self.player.boss_damage_cooldown -= 1
+
+        # Check collision (skip if player is invincible)
+        if not self.player.is_invincible():
+            if self.player.rect.colliderect(current_level.boss.rect):
+                if self.player.boss_damage_cooldown <= 0:
+                    self.player.take_damage(15)  # 15 damage from boss contact
+                    self.player.boss_damage_cooldown = 60  # 1 second cooldown at 60 FPS
+
+                    # Apply knockback to player
+                    dx = self.player.x - current_level.boss.x
+                    dy = self.player.y - current_level.boss.y
+                    distance = math.sqrt(dx**2 + dy**2)
+                    if distance > 0:
+                        direction_x = dx / distance
+                        direction_y = dy / distance
+                    else:
+                        direction_x, direction_y = 1, 0
+
+                    self.player.apply_knockback(25, direction_x, direction_y)
+
     def _check_trap_collisions(self):
         """Check if player touches traps and takes damage"""
         current_level = self.level_manager.get_current_level()
@@ -350,10 +430,45 @@ class Game:
                     if not projectile.is_alive():
                         enemy.projectiles.remove(projectile)
 
-    def _check_enemy_projectile_collisions(self):
-        """Check if enemy projectiles hit the player"""
+    def _update_boss_projectiles(self):
+        """Update all boss projectiles"""
         current_level = self.level_manager.get_current_level()
 
+        if current_level.boss and hasattr(current_level.boss, 'projectiles'):
+            for projectile in current_level.boss.projectiles[:]:
+                projectile.update()
+                if not projectile.is_alive():
+                    current_level.boss.projectiles.remove(projectile)
+
+    def _check_enemy_projectile_collisions(self):
+        """Check if enemy or boss projectiles hit the player"""
+        current_level = self.level_manager.get_current_level()
+
+        # Check boss projectiles
+        if current_level.boss and hasattr(current_level.boss, 'projectiles'):
+            for projectile in current_level.boss.projectiles[:]:
+                if self.player.rect.colliderect(projectile.rect):
+                    # Boss projectile hit player
+                    if self.player.invincibility_timer == 0:  # Only take damage if not invincible
+                        self.player.take_damage(projectile.damage)
+                        self.player.damage_cooldown = 60  # 1 second cooldown at 60 FPS
+
+                        # Apply knockback to player
+                        dx = self.player.x - projectile.x
+                        dy = self.player.y - projectile.y
+                        distance = math.sqrt(dx**2 + dy**2)
+                        if distance > 0:
+                            direction_x = dx / distance
+                            direction_y = dy / distance
+                        else:
+                            direction_x, direction_y = 1, 0
+
+                        self.player.apply_knockback(projectile.knockback_power, direction_x, direction_y)
+
+                    # Remove projectile
+                    current_level.boss.projectiles.remove(projectile)
+
+        # Check enemy projectiles
         for enemy in current_level.enemies:
             if not hasattr(enemy, 'projectiles'):
                 continue
@@ -541,6 +656,11 @@ class Game:
         # Draw XP bar (top-right)
         self._draw_xp_bar()
 
+        # Draw boss health bar if boss exists
+        current_level = self.level_manager.get_current_level()
+        if current_level.boss:
+            self._draw_boss_health_bar(current_level.boss)
+
     def _draw_hp_bar(self):
         """Draw the player's HP bar in the bottom-left corner"""
         # HP bar dimensions
@@ -690,6 +810,44 @@ class Game:
         font = pygame.font.Font(None, 18)
         xp_text = f"{self.player.experience}/{self.player.experience_to_level}"
         text_surface = font.render(xp_text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=bg_rect.center)
+        self.screen.blit(text_surface, text_rect)
+
+    def _draw_boss_health_bar(self, boss):
+        """Draw the boss's health bar at the top-center of the screen"""
+        # Boss health bar dimensions
+        bar_width = 400
+        bar_height = 40
+        padding = 10
+
+        # Position at top-center
+        bar_x = (self.config.SCREEN_WIDTH - bar_width) // 2
+        bar_y = padding
+
+        # Calculate HP percentage
+        hp_percentage = boss.current_hp / boss.max_hp
+        filled_width = int(bar_width * hp_percentage)
+
+        # Draw background (dark)
+        bg_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
+        pygame.draw.rect(self.screen, (50, 50, 50), bg_rect)
+        pygame.draw.rect(self.screen, (200, 200, 200), bg_rect, 3)  # Border
+
+        # Draw filled portion (red to green gradient based on health)
+        if hp_percentage > 0.5:
+            color = (int(255 * (1 - hp_percentage)), 255, 0)  # Green to yellow
+        elif hp_percentage > 0.25:
+            color = (255, 255, 0)  # Yellow
+        else:
+            color = (255, 0, 0)  # Red
+
+        filled_rect = pygame.Rect(bar_x, bar_y, filled_width, bar_height)
+        pygame.draw.rect(self.screen, color, filled_rect)
+
+        # Draw boss name and HP text
+        font = pygame.font.Font(None, 24)
+        hp_text = f"{boss.name} - {int(boss.current_hp)}/{int(boss.max_hp)} HP"
+        text_surface = font.render(hp_text, True, (255, 255, 255))
         text_rect = text_surface.get_rect(center=bg_rect.center)
         self.screen.blit(text_surface, text_rect)
 

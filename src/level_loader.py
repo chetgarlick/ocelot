@@ -9,6 +9,7 @@ from src.obstacle import Obstacle
 from src.coin import Coin
 from src.enemy import Enemy, TankyEnemy, RangedEnemy, FastEnemy
 from src.trap import Trap
+from src.boss import Boss
 
 
 class JSONLevel(Level):
@@ -94,6 +95,16 @@ class JSONLevel(Level):
 
             trap = Trap(x, y, width, height, damage=damage, trap_type=trap_type)
             self.traps.append(trap)
+
+    def _generate_boss(self):
+        """Generate boss from JSON data"""
+        boss_data = self.data.get('boss')
+        if boss_data:
+            x = boss_data['x']
+            y = boss_data['y']
+            name = boss_data.get('name', 'Boss')
+
+            self.boss = Boss(x, y, name=name)
 
     def _generate_exits(self):
         """Generate exit zones from JSON data"""

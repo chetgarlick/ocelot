@@ -58,6 +58,7 @@ class Level:
         self.coins = []
         self.enemies = []
         self.traps = []  # Hazards that damage the player
+        self.boss = None  # Optional boss for this level
         self.exit_zones = []
         
         # Generate level content
@@ -65,6 +66,7 @@ class Level:
         self._generate_coins()
         self._generate_enemies()
         self._generate_traps()
+        self._generate_boss()
         self._generate_exits()
     
     def _generate_tilemap(self):
@@ -104,6 +106,10 @@ class Level:
 
     def _generate_traps(self):
         """Generate traps for this level - override in subclasses"""
+        pass
+
+    def _generate_boss(self):
+        """Generate boss for this level - override in subclasses"""
         pass
 
     def _generate_exits(self):
@@ -189,7 +195,11 @@ class Level:
         # Draw enemies
         for enemy in self.enemies:
             enemy.draw(surface, camera)
-        
+
+        # Draw boss
+        if self.boss:
+            self.boss.draw(surface, camera)
+
         # Draw exit zones (debug - can be removed later)
         for exit_zone in self.exit_zones:
             exit_rect = pygame.Rect(

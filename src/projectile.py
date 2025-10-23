@@ -41,12 +41,15 @@ class Projectile:
             self.vy = 0
         
         # Create rect for collision detection
-        self.rect = pygame.Rect(x - self.radius, y - self.radius, 
+        self.rect = pygame.Rect(x - self.radius, y - self.radius,
                                self.radius * 2, self.radius * 2)
-        
+
         # Lifetime in frames (projectile disappears after this many frames)
         self.lifetime = 300  # 5 seconds at 60 FPS
         self.age = 0
+
+        # Damage dealt by this projectile (can be overridden)
+        self.damage = 5  # Default damage
 
     def update(self):
         """Update projectile position"""
