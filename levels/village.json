@@ -177,6 +177,13 @@
   ],
   "coins": [],
   "enemies": [],
+  "signposts": [
+    {
+      "x": 700,
+      "y": 200,
+      "text": "Welcome to Project Ocelot! A top-down adventure game."
+    }
+  ],
   "exits": [
     {
       "x": 1500,

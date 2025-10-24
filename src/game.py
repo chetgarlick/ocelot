@@ -11,6 +11,7 @@ from src.camera import Camera
 from src.menu import MainMenu, OptionsMenu, PauseMenu
 from src.explosion import Explosion
 from src.loot import Loot
+from src.dialogue import Dialogue
 
 
 class Game:
@@ -39,6 +40,7 @@ class Game:
         self.camera = None
         self.explosions = []
         self.loot_items = []
+        self.current_dialogue = None  # Currently displayed dialogue
 
         # Create menus
         self._create_menus()
@@ -213,6 +215,14 @@ class Game:
 
             # Check for level transitions
             self._check_level_transition()
+
+            # Check for signpost interactions
+            self._check_signpost_interaction()
+
+            # Update current dialogue
+            if self.current_dialogue:
+                if not self.current_dialogue.update():
+                    self.current_dialogue = None
 
             # Check if player is dead
             if not self.player.is_alive():
@@ -495,6 +505,17 @@ class Game:
                     # Remove projectile
                     enemy.projectiles.remove(projectile)
 
+    def _check_signpost_interaction(self):
+        """Check if player is near a signpost and can interact with it"""
+        current_level = self.level_manager.get_current_level()
+
+        # Check if player is near any signpost
+        for signpost in current_level.signposts:
+            if signpost.can_interact(self.player):
+                # Create dialogue from signpost
+                self.current_dialogue = Dialogue(signpost.get_dialogue_text())
+                break
+
     def _check_level_transition(self):
         """Check if player is in an exit zone and transition to new level"""
         current_level = self.level_manager.get_current_level()
@@ -670,6 +691,10 @@ class Game:
         current_level = self.level_manager.get_current_level()
         if current_level.boss:
             self._draw_boss_health_bar(current_level.boss)
+
+        # Draw current dialogue if active
+        if self.current_dialogue:
+            self.current_dialogue.draw(self.screen)
 
     def _draw_hp_bar(self):
         """Draw the player's HP bar in the bottom-left corner"""

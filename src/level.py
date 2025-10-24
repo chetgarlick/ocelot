@@ -59,6 +59,7 @@ class Level:
         self.enemies = []
         self.traps = []  # Hazards that damage the player
         self.boss = None  # Optional boss for this level
+        self.signposts = []  # Interactive signposts
         self.exit_zones = []
         
         # Generate level content
@@ -67,6 +68,7 @@ class Level:
         self._generate_enemies()
         self._generate_traps()
         self._generate_boss()
+        self._generate_signposts()
         self._generate_exits()
     
     def _generate_tilemap(self):
@@ -110,6 +112,10 @@ class Level:
 
     def _generate_boss(self):
         """Generate boss for this level - override in subclasses"""
+        pass
+
+    def _generate_signposts(self):
+        """Generate signposts for this level - override in subclasses"""
         pass
 
     def _generate_exits(self):
@@ -199,6 +205,10 @@ class Level:
         # Draw boss
         if self.boss:
             self.boss.draw(surface, camera)
+
+        # Draw signposts
+        for signpost in self.signposts:
+            signpost.draw(surface, camera)
 
         # Draw exit zones (debug - can be removed later)
         for exit_zone in self.exit_zones:

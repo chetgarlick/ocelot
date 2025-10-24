@@ -10,6 +10,7 @@ from src.coin import Coin
 from src.enemy import Enemy, TankyEnemy, RangedEnemy, FastEnemy
 from src.trap import Trap
 from src.boss import Boss
+from src.signpost import Signpost
 
 
 class JSONLevel(Level):
@@ -105,6 +106,16 @@ class JSONLevel(Level):
             name = boss_data.get('name', 'Boss')
 
             self.boss = Boss(x, y, name=name)
+
+    def _generate_signposts(self):
+        """Generate signposts from JSON data"""
+        for signpost_data in self.data.get('signposts', []):
+            signpost = Signpost(
+                x=signpost_data['x'],
+                y=signpost_data['y'],
+                text=signpost_data['text']
+            )
+            self.signposts.append(signpost)
 
     def _generate_exits(self):
         """Generate exit zones from JSON data"""
