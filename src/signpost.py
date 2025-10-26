@@ -4,6 +4,7 @@ Signpost class - an interactive object that displays dialogue when interacted wi
 
 import pygame
 from src.config import Config
+from src.sprite_renderer import SpriteRenderer
 
 
 class Signpost:
@@ -25,14 +26,10 @@ class Signpost:
         # Signpost dimensions
         self.width = 32
         self.height = 48
-        
-        # Create the signpost image (a simple brown post with a sign)
-        self.image = pygame.Surface((self.width, self.height))
-        self.image.fill((139, 69, 19))  # Brown color for the post
-        
-        # Draw a sign on top (lighter brown rectangle)
-        pygame.draw.rect(self.image, (184, 134, 11), (4, 4, 24, 16))
-        
+
+        # Create detailed signpost sprite
+        self.image = SpriteRenderer.create_signpost_sprite(self.width, self.height)
+
         # Create rect for collision detection
         self.rect = self.image.get_rect(topleft=(x, y))
         

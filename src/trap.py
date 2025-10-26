@@ -3,6 +3,7 @@ Trap class - represents hazards that damage the player on contact
 """
 
 import pygame
+from src.sprite_renderer import SpriteRenderer
 
 
 class Trap:
@@ -28,39 +29,9 @@ class Trap:
         
         # Create rect for collision detection
         self.rect = pygame.Rect(x, y, width, height)
-        
-        # Create image for rendering based on trap type
-        self.image = pygame.Surface((width, height))
-        
-        if trap_type == "spike":
-            # Red spikes
-            self.image.fill((200, 0, 0))
-            # Draw spike pattern
-            for i in range(0, width, 10):
-                pygame.draw.polygon(self.image, (255, 0, 0), [
-                    (i, height),
-                    (i + 5, 0),
-                    (i + 10, height)
-                ])
-        elif trap_type == "fire":
-            # Orange/yellow fire
-            self.image.fill((255, 100, 0))
-            # Draw flame pattern
-            for i in range(0, width, 15):
-                pygame.draw.polygon(self.image, (255, 200, 0), [
-                    (i + 5, height),
-                    (i + 7, height // 2),
-                    (i + 10, height)
-                ])
-        elif trap_type == "acid":
-            # Green acid
-            self.image.fill((0, 200, 0))
-            # Draw drip pattern
-            for i in range(0, width, 12):
-                pygame.draw.circle(self.image, (100, 255, 100), (i + 6, height // 2), 3)
-        else:
-            # Default gray trap
-            self.image.fill((100, 100, 100))
+
+        # Create detailed trap sprite
+        self.image = SpriteRenderer.create_trap_sprite(width, height, trap_type)
     
     def draw(self, surface, camera):
         """Draw the trap to the screen with camera offset

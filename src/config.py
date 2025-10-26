@@ -13,7 +13,7 @@ class Config:
     GAME_TITLE = "OCELOT - A 2D Adventure"
     
     # Colors (RGB)
-    BG_COLOR = (34, 139, 34)  # Forest green
+    BG_COLOR = (0, 0, 0)  # Black (space)
     
     # Player settings
     PLAYER_SPEED = 5

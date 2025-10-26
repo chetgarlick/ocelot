@@ -4,6 +4,7 @@ Projectile class - represents a projectile fired by the player
 
 import pygame
 import math
+from src.sprite_renderer import SpriteRenderer
 
 
 class Projectile:
@@ -87,5 +88,7 @@ class Projectile:
         # Only draw if on screen
         if -10 < screen_x < surface.get_width() + 10 and \
            -10 < screen_y < surface.get_height() + 10:
-            pygame.draw.circle(surface, self.color, (int(screen_x), int(screen_y)), self.radius)
+            # Create and draw detailed projectile sprite
+            sprite = SpriteRenderer.create_projectile_sprite(self.radius, self.color)
+            surface.blit(sprite, (int(screen_x - self.radius), int(screen_y - self.radius)))
 

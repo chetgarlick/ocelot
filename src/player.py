@@ -7,6 +7,7 @@ import math
 from src.config import Config
 from src.entity import Entity
 from src.projectile import Projectile
+from src.sprite_renderer import SpriteRenderer
 
 
 class Player(Entity):
@@ -27,9 +28,8 @@ class Player(Entity):
 
         self.speed = self.config.PLAYER_SPEED
 
-        # Create a simple colored rectangle for the player
-        self.image = pygame.Surface((self.width, self.height))
-        self.image.fill((100, 149, 237))  # Blue color (cornflower blue)
+        # Create detailed player sprite
+        self.image = SpriteRenderer.create_player_sprite(self.width, self.height)
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
         # Coin collection

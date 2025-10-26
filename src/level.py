@@ -142,31 +142,12 @@ class Level:
     
     def draw(self, surface, camera):
         """Draw the level to the screen
-        
+
         Args:
             surface: Pygame surface to draw to
             camera: Camera object for viewport offset
         """
-        # Draw tiles
-        for y, row in enumerate(self.tiles):
-            for x, tile in enumerate(row):
-                world_x = x * self.tile_size
-                world_y = y * self.tile_size
-                screen_x, screen_y = camera.apply_point(world_x, world_y)
-                
-                rect = pygame.Rect(screen_x, screen_y,
-                                   self.tile_size, self.tile_size)
-                
-                # Only draw tiles that are visible on screen
-                if -self.tile_size < screen_x < camera.width and \
-                   -self.tile_size < screen_y < camera.height:
-                    if tile == 0:  # Grass
-                        pygame.draw.rect(surface, (34, 139, 34), rect)
-                    elif tile == 1:  # Water
-                        pygame.draw.rect(surface, (0, 100, 200), rect)
-                    
-                    # Draw grid lines for visibility
-                    pygame.draw.rect(surface, (50, 150, 50), rect, 1)
+        # Don't draw tiles - use starfield background instead for sci-fi theme
         
         # Draw visual obstacles (no collision)
         for obstacle in self.visual_obstacles:

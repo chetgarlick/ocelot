@@ -12,6 +12,7 @@ from src.menu import MainMenu, OptionsMenu, PauseMenu
 from src.explosion import Explosion
 from src.loot import Loot
 from src.dialogue import Dialogue
+from src.starfield import Starfield
 
 
 class Game:
@@ -41,6 +42,9 @@ class Game:
         self.explosions = []
         self.loot_items = []
         self.current_dialogue = None  # Currently displayed dialogue
+
+        # Create starfield background
+        self.starfield = Starfield(self.config.SCREEN_WIDTH, self.config.SCREEN_HEIGHT, num_stars=200)
 
         # Create menus
         self._create_menus()
@@ -594,7 +598,8 @@ class Game:
         if self.state == "PLAYING":
             current_level = self.level_manager.get_current_level()
 
-            self.screen.fill(self.config.BG_COLOR)
+            # Draw starfield background
+            self.starfield.draw(self.screen, self.camera)
 
             # Draw level with camera offset
             current_level.draw(self.screen, self.camera)
@@ -636,8 +641,8 @@ class Game:
         elif self.state == "PAUSED":
             current_level = self.level_manager.get_current_level()
 
-            # Draw game in background
-            self.screen.fill(self.config.BG_COLOR)
+            # Draw starfield background
+            self.starfield.draw(self.screen, self.camera)
             current_level.draw(self.screen, self.camera)
 
             # Draw projectiles

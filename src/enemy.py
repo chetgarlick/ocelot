@@ -9,6 +9,7 @@ from enum import Enum
 from src.config import Config
 from src.entity import Entity
 from src.loot import HealthPotion, CoinDrop
+from src.sprite_renderer import SpriteRenderer
 
 
 class EnemyType(Enum):
@@ -55,9 +56,8 @@ class Enemy(Entity):
         self.patrol_timer = 0
         self.patrol_change_interval = 60  # Frames before changing direction
 
-        # Create a simple colored rectangle for the enemy (red)
-        self.image = pygame.Surface((self.width, self.height))
-        self.image.fill((255, 0, 0))  # Red color
+        # Create detailed enemy sprite (normal type by default)
+        self.image = SpriteRenderer.create_enemy_sprite(self.width, self.height, "normal")
 
     def update(self, player, obstacles):
         """Update enemy position based on patrol or chase behavior
@@ -231,9 +231,8 @@ class TankyEnemy(Enemy):
         self.width = 32  # Larger size
         self.height = 32
 
-        # Recreate image with larger size and different color (blue)
-        self.image = pygame.Surface((self.width, self.height))
-        self.image.fill((0, 100, 255))  # Blue color
+        # Recreate image with detailed tanky sprite
+        self.image = SpriteRenderer.create_enemy_sprite(self.width, self.height, "tanky")
 
         # Update rect
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
@@ -267,9 +266,8 @@ class RangedEnemy(Enemy):
         self.attack_cooldown_max = 120  # Fire every 2 seconds
         self.attack_range = 250  # Range at which to start attacking
 
-        # Recreate image with different color (purple)
-        self.image = pygame.Surface((self.width, self.height))
-        self.image.fill((200, 0, 200))  # Purple color
+        # Recreate image with detailed ranged sprite
+        self.image = SpriteRenderer.create_enemy_sprite(self.width, self.height, "ranged")
 
         # Higher XP reward for ranged enemies
         self.xp_reward = 20
@@ -354,9 +352,8 @@ class FastEnemy(Enemy):
         self.width = 16
         self.height = 16
 
-        # Recreate image with smaller size and different color (green)
-        self.image = pygame.Surface((self.width, self.height))
-        self.image.fill((0, 255, 0))  # Green color
+        # Recreate image with detailed fast sprite
+        self.image = SpriteRenderer.create_enemy_sprite(self.width, self.height, "fast")
 
         # Update rect
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)

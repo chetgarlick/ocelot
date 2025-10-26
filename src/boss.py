@@ -10,6 +10,7 @@ from src.config import Config
 from src.entity import Entity
 from src.projectile import Projectile
 from src.loot import HealthPotion, CoinDrop
+from src.sprite_renderer import SpriteRenderer
 
 
 class BossAttackType(Enum):
@@ -64,13 +65,8 @@ class Boss(Entity):
             BossAttackType.SUMMON_PROJECTILES,
         ]
         
-        # Create image (larger, purple boss)
-        self.image = pygame.Surface((self.width, self.height))
-        self.image.fill((150, 50, 200))  # Purple
-        # Draw a crown-like pattern on top
-        pygame.draw.polygon(self.image, (255, 215, 0), [
-            (10, 5), (15, 0), (20, 5), (25, 0), (30, 5)
-        ])
+        # Create detailed boss sprite
+        self.image = SpriteRenderer.create_boss_sprite(self.width, self.height)
     
     def update(self, player, obstacles):
         """Update boss position and attacks

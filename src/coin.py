@@ -3,6 +3,7 @@ Coin class - represents a collectible currency item
 """
 
 import pygame
+from src.sprite_renderer import SpriteRenderer
 
 
 class Coin:
@@ -20,20 +21,10 @@ class Coin:
         self.width = 16
         self.height = 16
         self.radius = 8
-        
-        # Create a yellow circular coin image
-        self.image = pygame.Surface((self.width, self.height))
-        self.image.set_colorkey((0, 0, 0))  # Make black transparent
-        self.image.fill((0, 0, 0))  # Fill with black (will be transparent)
-        
-        # Draw a yellow circle
-        pygame.draw.circle(
-            self.image,
-            (255, 255, 0),  # Yellow color
-            (self.radius, self.radius),
-            self.radius
-        )
-        
+
+        # Create detailed coin sprite
+        self.image = SpriteRenderer.create_coin_sprite(self.width, self.height)
+
         # Create rect for collision detection
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
