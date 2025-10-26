@@ -23,8 +23,8 @@ class SpriteRenderer:
         """
         surface = pygame.Surface((width, height), pygame.SRCALPHA)
 
-        # Main hull (cyan/light blue spaceship body)
-        pygame.draw.polygon(surface, (0, 255, 255), [
+        # Main hull (dark grey spaceship body)
+        pygame.draw.polygon(surface, (60, 60, 70), [
             (width // 2, 2),           # Nose cone
             (width - 3, height - 4),   # Right wing
             (width // 2 + 2, height - 2),  # Right engine
@@ -32,21 +32,21 @@ class SpriteRenderer:
             (3, height - 4)            # Left wing
         ])
 
-        # Cockpit window (bright white circle)
-        pygame.draw.circle(surface, (255, 255, 255), (width // 2, 8), 3)
-        pygame.draw.circle(surface, (0, 100, 255), (width // 2, 8), 2)
+        # Cockpit window (cyan highlight)
+        pygame.draw.circle(surface, (0, 255, 255), (width // 2, 8), 3)
+        pygame.draw.circle(surface, (0, 200, 200), (width // 2, 8), 2)
 
-        # Engine glow (left)
-        pygame.draw.circle(surface, (255, 100, 0), (width // 2 - 3, height - 1), 2)
-        pygame.draw.circle(surface, (255, 200, 0), (width // 2 - 3, height - 1), 1)
+        # Engine glow (left - cyan)
+        pygame.draw.circle(surface, (0, 200, 255), (width // 2 - 3, height - 1), 2)
+        pygame.draw.circle(surface, (100, 255, 255), (width // 2 - 3, height - 1), 1)
 
-        # Engine glow (right)
-        pygame.draw.circle(surface, (255, 100, 0), (width // 2 + 3, height - 1), 2)
-        pygame.draw.circle(surface, (255, 200, 0), (width // 2 + 3, height - 1), 1)
+        # Engine glow (right - cyan)
+        pygame.draw.circle(surface, (0, 200, 255), (width // 2 + 3, height - 1), 2)
+        pygame.draw.circle(surface, (100, 255, 255), (width // 2 + 3, height - 1), 1)
 
-        # Wing details (small lines)
-        pygame.draw.line(surface, (100, 200, 255), (3, height - 4), (width // 2 - 2, height - 2), 1)
-        pygame.draw.line(surface, (100, 200, 255), (width - 3, height - 4), (width // 2 + 2, height - 2), 1)
+        # Wing details (cyan accent lines)
+        pygame.draw.line(surface, (0, 200, 255), (3, height - 4), (width // 2 - 2, height - 2), 1)
+        pygame.draw.line(surface, (0, 200, 255), (width - 3, height - 4), (width // 2 + 2, height - 2), 1)
 
         # Apply rotation if needed
         if rotation != 0:

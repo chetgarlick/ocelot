@@ -781,26 +781,67 @@ class Game:
         self.screen.blit(text_surface, text_rect)
 
     def _draw_dash_effect(self, player_rect):
-        """Draw a visual effect for the dash
+        """Draw a rocket boost effect for the dash
 
         Args:
             player_rect: The player's screen position rect
         """
-        # Create a semi-transparent blue circle around the player
-        dash_radius = int(self.player.width * 1.5)
+        # Calculate progress (0 to 1)
+        progress = self.player.dash_timer / self.player.dash_duration
 
-        # Create a surface for the dash effect
-        dash_surface = pygame.Surface((dash_radius * 2, dash_radius * 2), pygame.SRCALPHA)
+        # Get dash direction
+        dx, dy = self.player.dash_direction
 
-        # Draw a glowing circle effect
-        alpha = int(150 * (1 - self.player.dash_timer / self.player.dash_duration))
-        pygame.draw.circle(dash_surface, (100, 200, 255, alpha),
-                         (dash_radius, dash_radius), dash_radius)
+        # Calculate flame trail position (behind the player)
+        flame_x = player_rect.centerx - dx * player_rect.width
+        flame_y = player_rect.centery - dy * player_rect.height
 
-        # Blit to screen
-        self.screen.blit(dash_surface,
-                        (player_rect.centerx - dash_radius,
-                         player_rect.centery - dash_radius))
+        # Draw multiple flame particles for rocket effect
+        num_flames = 3
+        for i in range(num_flames):
+            # Stagger the flames
+            offset = i * 8
+            flame_pos_x = flame_x - dx * offset
+            flame_pos_y = flame_y - dy * offset
+
+            # Flame size decreases with distance
+            flame_size = int(player_rect.width * (1 - i / num_flames) * 0.8)
+
+            if flame_size > 0:
+                # Create flame surface
+                flame_surface = pygame.Surface((flame_size * 2, flame_size * 2), pygame.SRCALPHA)
+
+                # Outer flame (orange/red)
+                outer_alpha = int(200 * (1 - progress))
+                pygame.draw.circle(flame_surface, (255, 100, 0, outer_alpha),
+                                 (flame_size, flame_size), flame_size)
+
+                # Middle flame (yellow)
+                middle_size = int(flame_size * 0.6)
+                middle_alpha = int(220 * (1 - progress))
+                pygame.draw.circle(flame_surface, (255, 200, 0, middle_alpha),
+                                 (flame_size, flame_size), middle_size)
+
+                # Inner flame (bright yellow/white)
+                inner_size = int(flame_size * 0.3)
+                inner_alpha = int(255 * (1 - progress))
+                pygame.draw.circle(flame_surface, (255, 255, 100, inner_alpha),
+                                 (flame_size, flame_size), inner_size)
+
+                # Blit to screen
+                self.screen.blit(flame_surface,
+                                (int(flame_pos_x) - flame_size,
+                                 int(flame_pos_y) - flame_size))
+
+        # Draw a bright glow around the player during dash
+        glow_radius = int(player_rect.width * 1.2)
+        glow_surface = pygame.Surface((glow_radius * 2, glow_radius * 2), pygame.SRCALPHA)
+        glow_alpha = int(100 * (1 - progress))
+        pygame.draw.circle(glow_surface, (255, 150, 0, glow_alpha),
+                         (glow_radius, glow_radius), glow_radius)
+        self.screen.blit(glow_surface,
+                        (player_rect.centerx - glow_radius,
+                         player_rect.centery - glow_radius))
 
     def _draw_level_and_stats(self):
         """Draw player level and stats in the top-left corner"""
