@@ -144,6 +144,17 @@ class Game:
                     if self.state == "PLAYING":
                         # Initiate dash in direction of current movement
                         self._initiate_dash()
+                    elif self.current_menu:
+                        # Handle menu keyboard input (Space to activate)
+                        result = self.current_menu.handle_keyboard(event.key)
+                        if result is not None:
+                            self.state = result if isinstance(result, str) else self.state
+                elif event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_w, pygame.K_s, pygame.K_RETURN]:
+                    # Handle menu navigation
+                    if self.current_menu:
+                        result = self.current_menu.handle_keyboard(event.key)
+                        if result is not None:
+                            self.state = result if isinstance(result, str) else self.state
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
                     if self.state == "PLAYING":

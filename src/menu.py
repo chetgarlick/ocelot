@@ -11,7 +11,7 @@ class Button:
 
     def __init__(self, x, y, width, height, text, callback=None):
         """Initialize a button
-        
+
         Args:
             x: X position
             y: Y position
@@ -24,11 +24,13 @@ class Button:
         self.text = text
         self.callback = callback
         self.is_hovered = False
+        self.is_selected = False  # For keyboard navigation
         self.font = pygame.font.Font(None, 36)
-        
+
         # Colors
         self.normal_color = (100, 100, 100)
         self.hover_color = (150, 150, 150)
+        self.selected_color = (200, 100, 100)  # Red-ish for keyboard selection
         self.text_color = (255, 255, 255)
 
     def update(self, mouse_pos):
@@ -41,15 +43,23 @@ class Button:
 
     def draw(self, surface):
         """Draw the button to the screen
-        
+
         Args:
             surface: Pygame surface to draw to
         """
         # Draw button background
-        color = self.hover_color if self.is_hovered else self.normal_color
+        if self.is_selected:
+            color = self.selected_color
+        elif self.is_hovered:
+            color = self.hover_color
+        else:
+            color = self.normal_color
         pygame.draw.rect(surface, color, self.rect)
-        pygame.draw.rect(surface, (255, 255, 255), self.rect, 2)  # Border
-        
+
+        # Draw border (thicker if selected)
+        border_width = 3 if self.is_selected else 2
+        pygame.draw.rect(surface, (255, 255, 255), self.rect, border_width)
+
         # Draw text
         text_surface = self.font.render(self.text, True, self.text_color)
         text_rect = text_surface.get_rect(center=self.rect.center)
@@ -57,14 +67,24 @@ class Button:
 
     def handle_click(self, mouse_pos):
         """Handle mouse click
-        
+
         Args:
             mouse_pos: Mouse position (x, y)
-            
+
         Returns:
             Result of callback if clicked, None otherwise
         """
         if self.rect.collidepoint(mouse_pos) and self.callback:
+            return self.callback()
+        return None
+
+    def activate(self):
+        """Activate the button (called when selected via keyboard)
+
+        Returns:
+            Result of callback if exists, None otherwise
+        """
+        if self.callback:
             return self.callback()
         return None
 
@@ -74,19 +94,20 @@ class Menu:
 
     def __init__(self, title="Menu"):
         """Initialize a menu
-        
+
         Args:
             title: Menu title
         """
         self.config = Config()
         self.title = title
         self.buttons = []
+        self.selected_index = 0  # Index of currently selected button
         self.title_font = pygame.font.Font(None, 72)
         self.bg_color = (20, 20, 40)  # Dark blue background
 
     def add_button(self, text, callback, y_offset=0):
         """Add a button to the menu
-        
+
         Args:
             text: Button text
             callback: Function to call when clicked
@@ -96,9 +117,13 @@ class Menu:
         button_height = 60
         button_x = (self.config.SCREEN_WIDTH - button_width) // 2
         button_y = 250 + (len(self.buttons) * 100) + y_offset
-        
+
         button = Button(button_x, button_y, button_width, button_height, text, callback)
         self.buttons.append(button)
+
+        # Select first button by default
+        if len(self.buttons) == 1:
+            button.is_selected = True
 
     def update(self, mouse_pos):
         """Update menu state
@@ -111,10 +136,10 @@ class Menu:
 
     def handle_click(self, mouse_pos):
         """Handle mouse click
-        
+
         Args:
             mouse_pos: Mouse position
-            
+
         Returns:
             Result from button callback if clicked
         """
@@ -122,6 +147,31 @@ class Menu:
             result = button.handle_click(mouse_pos)
             if result is not None:
                 return result
+        return None
+
+    def handle_keyboard(self, key):
+        """Handle keyboard input for menu navigation
+
+        Args:
+            key: Pygame key constant
+
+        Returns:
+            Result from button callback if activated, None otherwise
+        """
+        if key in [pygame.K_UP, pygame.K_w]:
+            # Move selection up
+            self.buttons[self.selected_index].is_selected = False
+            self.selected_index = (self.selected_index - 1) % len(self.buttons)
+            self.buttons[self.selected_index].is_selected = True
+        elif key in [pygame.K_DOWN, pygame.K_s]:
+            # Move selection down
+            self.buttons[self.selected_index].is_selected = False
+            self.selected_index = (self.selected_index + 1) % len(self.buttons)
+            self.buttons[self.selected_index].is_selected = True
+        elif key in [pygame.K_RETURN, pygame.K_SPACE]:
+            # Activate selected button
+            return self.buttons[self.selected_index].activate()
+
         return None
 
     def draw(self, surface):
