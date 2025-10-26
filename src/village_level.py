@@ -1,11 +1,10 @@
 """
+NOTE:::: THIS IS NOT REALY USED ANYMORE, REPLACED WITH A JSON LEVEL DESIGN SYSTEM.
 Village Level - peaceful starting area with buildings and paths
 """
 
 from src.level import Level, ExitZone
 from src.obstacle import Obstacle
-from src.npc import NPC
-from src.dialogue import DialogueTree
 
 
 class VillageLevel(Level):
@@ -111,71 +110,8 @@ class VillageLevel(Level):
 
     def _generate_npcs(self):
         """Generate NPCs for the village"""
-        # Create a merchant NPC in the main building (town hall)
-        merchant_tree = DialogueTree("merchant_greeting")
-
-        # Add dialogue nodes
-        merchant_tree.add_node(
-            "start",
-            "Welcome, traveler! I'm the village merchant. What brings you here?",
-            choices=[
-                ("Tell me about the world", "world_info"),
-                ("I'm looking for supplies", "supplies"),
-                ("Just passing through", "end")
-            ]
-        )
-
-        merchant_tree.add_node(
-            "world_info",
-            "Beyond our peaceful village lies danger and adventure. Many have ventured out seeking fortune and glory. Some return as heroes, others... well, we don't see them again.",
-            choices=[
-                ("Sounds exciting!", "excited"),
-                ("That sounds dangerous", "cautious"),
-                ("Back to main topic", "start")
-            ]
-        )
-
-        merchant_tree.add_node(
-            "excited",
-            "Ah, a brave soul! You'll fit right in with the adventurers. Head east when you're ready to test your skills!",
-            choices=[
-                ("I'll head out soon", "end"),
-                ("Tell me more", "world_info")
-            ]
-        )
-
-        merchant_tree.add_node(
-            "cautious",
-            "Wise to be cautious. But fortune favors the bold! When you're ready, head east to find your destiny.",
-            choices=[
-                ("I'll think about it", "end"),
-                ("Tell me more", "world_info")
-            ]
-        )
-
-        merchant_tree.add_node(
-            "supplies",
-            "Ah, supplies! I have everything an adventurer needs. Unfortunately, my shop isn't quite ready yet. Check back soon!",
-            choices=[
-                ("Understood", "end"),
-                ("Back to main topic", "start")
-            ]
-        )
-
-        merchant_tree.add_node(
-            "end",
-            "Safe travels, adventurer!",
-            choices=[]
-        )
-
-        # Create the merchant NPC in the center of the main building
-        merchant = NPC(
-            x=540,  # Center of the main building
-            y=480,  # Center of the main building
-            name="Merchant",
-            dialogue_tree=merchant_tree
-        )
-        self.npcs.append(merchant)
+        # NPCs are now loaded from JSON, so this is a placeholder
+        pass
 
     def _generate_exits(self):
         """Generate exit zones for the village"""

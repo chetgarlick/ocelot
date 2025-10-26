@@ -184,6 +184,29 @@
       "text": "Welcome to Project Ocelot! A top-down adventure game."
     }
   ],
+  "npcs": [
+    {
+      "x": 1000,
+      "y": 300,
+      "name": "TestNPC",
+      "width": 80,
+      "height": 80,
+      "color": [255, 255, 255],
+      "dialogue": {
+        "start": {
+          "text": "Hello! I'm a test NPC!",
+          "choices": [
+            {"text": "Hi there!", "next": "end"},
+            {"text": "Goodbye", "next": "end"}
+          ]
+        },
+        "end": {
+          "text": "See you later!",
+          "choices": []
+        }
+      }
+    }
+  ],
   "exits": [
     {
       "x": 1500,

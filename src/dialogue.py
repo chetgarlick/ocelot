@@ -39,9 +39,17 @@ class Dialogue:
         self.height = height
         self.choices = choices or []
 
+        # Calculate total height needed for choices
+        choice_height = 0
+        if self.choices:
+            choice_height = len(self.choices) * 25 + 20  # 25px per choice + padding
+
+        total_height = height + choice_height
+
         # Position the dialogue box at the bottom center of the screen
+        # Adjust Y position to keep the entire box on screen
         self.x = (self.config.SCREEN_WIDTH - width) // 2
-        self.y = self.config.SCREEN_HEIGHT - height - 20
+        self.y = max(20, self.config.SCREEN_HEIGHT - total_height - 20)
 
         # Create the background surface
         self.background = pygame.Surface((width, height))

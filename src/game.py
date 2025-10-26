@@ -566,7 +566,11 @@ class Game:
         for npc in current_level.npcs:
             if npc.can_interact(self.player):
                 # Start the NPC's dialogue tree
+                with open("debug.log", "a") as f:
+                    f.write(f"DEBUG: Interacting with NPC: {npc.name}\n")
                 self.current_dialogue = npc.start_dialogue()
+                with open("debug.log", "a") as f:
+                    f.write(f"DEBUG: Dialogue created: {self.current_dialogue}\n")
                 break
 
     def _check_level_transition(self):

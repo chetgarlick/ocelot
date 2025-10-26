@@ -117,6 +117,44 @@ class JSONLevel(Level):
             )
             self.signposts.append(signpost)
 
+    def _generate_npcs(self):
+        """Generate NPCs from JSON data"""
+        import pygame
+        from src.npc import NPC
+        from src.dialogue import DialogueTree
+
+        for npc_data in self.data.get('npcs', []):
+            x = npc_data['x']
+            y = npc_data['y']
+            name = npc_data.get('name', 'NPC')
+            width = npc_data.get('width', 32)
+            height = npc_data.get('height', 48)
+            color = tuple(npc_data.get('color', [128, 128, 128]))
+            dialogue_data = npc_data.get('dialogue', {})
+
+            # Create dialogue tree from JSON data
+            tree = DialogueTree(name)
+            for node_id, node_data in dialogue_data.items():
+                text = node_data.get('text', '')
+                choices = []
+                for choice_data in node_data.get('choices', []):
+                    choice_text = choice_data.get('text', '')
+                    next_node = choice_data.get('next', 'end')
+                    choices.append((choice_text, next_node))
+                tree.add_node(node_id, text, choices=choices if choices else None)
+
+            # Create NPC
+            npc = NPC(x, y, name, tree)
+            npc.width = width
+            npc.height = height
+
+            # Create custom sprite (colored square)
+            npc.image = pygame.Surface((width, height))
+            npc.image.fill(color)
+            npc.rect = npc.image.get_rect(topleft=(x, y))
+
+            self.npcs.append(npc)
+
     def _generate_exits(self):
         """Generate exit zones from JSON data"""
         for exit_data in self.data.get('exits', []):
