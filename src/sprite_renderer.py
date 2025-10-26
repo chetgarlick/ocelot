@@ -10,12 +10,13 @@ class SpriteRenderer:
     """Utility class for rendering detailed sprites"""
 
     @staticmethod
-    def create_player_sprite(width, height):
+    def create_player_sprite(width, height, rotation=0):
         """Create a sci-fi player spaceship sprite
 
         Args:
             width: Sprite width
             height: Sprite height
+            rotation: Rotation angle in degrees (0 = pointing right)
 
         Returns:
             Pygame Surface with player spaceship sprite
@@ -46,6 +47,10 @@ class SpriteRenderer:
         # Wing details (small lines)
         pygame.draw.line(surface, (100, 200, 255), (3, height - 4), (width // 2 - 2, height - 2), 1)
         pygame.draw.line(surface, (100, 200, 255), (width - 3, height - 4), (width // 2 + 2, height - 2), 1)
+
+        # Apply rotation if needed
+        if rotation != 0:
+            surface = pygame.transform.rotate(surface, -rotation)
 
         return surface
 

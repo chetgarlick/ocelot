@@ -60,6 +60,10 @@ class Player(Entity):
         self.invincibility_timer = 0  # Frames of invincibility after dash starts
         self.invincibility_duration = 20  # 0.33 seconds of invincibility
 
+        # Rotation
+        self.rotation_angle = 0  # Current rotation angle in degrees (0 = pointing right)
+        self.last_direction = (1, 0)  # Last movement direction for rotation
+
     def update(self, keys, obstacles=None):
         """Update player position based on input
 
@@ -95,17 +99,41 @@ class Player(Entity):
                 self.dash_timer = 0
         else:
             # Handle normal movement with collision detection
+            movement_x = 0
+            movement_y = 0
+
             if keys[pygame.K_UP] or keys[pygame.K_w]:
                 self._try_move(0, -self.speed, obstacles)
+                movement_y -= 1
             if keys[pygame.K_DOWN] or keys[pygame.K_s]:
                 self._try_move(0, self.speed, obstacles)
+                movement_y += 1
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
                 self._try_move(-self.speed, 0, obstacles)
+                movement_x -= 1
             if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                 self._try_move(self.speed, 0, obstacles)
+                movement_x += 1
+
+            # Update rotation based on movement direction
+            if movement_x != 0 or movement_y != 0:
+                self.last_direction = (movement_x, movement_y)
+                self._update_rotation()
 
         # Update rect position
         self.rect.topleft = (self.x, self.y)
+
+        # Update sprite with current rotation
+        self.image = SpriteRenderer.create_player_sprite(self.width, self.height, self.rotation_angle)
+
+    def _update_rotation(self):
+        """Update the player's rotation angle based on movement direction"""
+        dx, dy = self.last_direction
+
+        # Calculate angle in degrees (0 = right, 90 = down, 180 = left, 270 = up)
+        # Using atan2 which returns angle in radians
+        angle_rad = math.atan2(dy, dx)
+        self.rotation_angle = math.degrees(angle_rad) + 90  # Add 90 to correct orientation
 
     def _try_move(self, dx, dy, obstacles):
         """Try to move the player, checking for collisions
