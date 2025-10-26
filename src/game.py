@@ -153,7 +153,12 @@ class Game:
                         # Confirm dialogue choice if dialogue is open
                         if self.current_dialogue and self.current_dialogue.choices:
                             self.current_dialogue.confirm_choice()
-                            self.current_dialogue = None
+                            # Check if this is a dialogue tree and get the next dialogue
+                            if hasattr(self.current_dialogue, 'tree'):
+                                next_dialogue = self.current_dialogue.tree.get_next_dialogue()
+                                self.current_dialogue = next_dialogue if next_dialogue else None
+                            else:
+                                self.current_dialogue = None
                         else:
                             # Initiate dash in direction of current movement
                             self._initiate_dash()
@@ -178,7 +183,12 @@ class Game:
                     # Confirm dialogue choice if dialogue is open
                     if self.state == "PLAYING" and self.current_dialogue and self.current_dialogue.choices:
                         self.current_dialogue.confirm_choice()
-                        self.current_dialogue = None
+                        # Check if this is a dialogue tree and get the next dialogue
+                        if hasattr(self.current_dialogue, 'tree'):
+                            next_dialogue = self.current_dialogue.tree.get_next_dialogue()
+                            self.current_dialogue = next_dialogue if next_dialogue else None
+                        else:
+                            self.current_dialogue = None
                     elif self.current_menu:
                         result = self.current_menu.handle_keyboard(event.key)
                         if result is not None:
@@ -551,6 +561,10 @@ class Game:
         """Check if player is near a signpost and can interact with it"""
         current_level = self.level_manager.get_current_level()
 
+        # Only check for new signpost interactions if no dialogue is currently active
+        if self.current_dialogue:
+            return
+
         # Check if player is near any signpost
         for signpost in current_level.signposts:
             if signpost.can_interact(self.player):
@@ -562,15 +576,15 @@ class Game:
         """Check if player is near an NPC and can interact with it"""
         current_level = self.level_manager.get_current_level()
 
+        # Only check for new NPC interactions if no dialogue is currently active
+        if self.current_dialogue:
+            return
+
         # Check if player is near any NPC
         for npc in current_level.npcs:
             if npc.can_interact(self.player):
                 # Start the NPC's dialogue tree
-                with open("debug.log", "a") as f:
-                    f.write(f"DEBUG: Interacting with NPC: {npc.name}\n")
                 self.current_dialogue = npc.start_dialogue()
-                with open("debug.log", "a") as f:
-                    f.write(f"DEBUG: Dialogue created: {self.current_dialogue}\n")
                 break
 
     def _check_level_transition(self):

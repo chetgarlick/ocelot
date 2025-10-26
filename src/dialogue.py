@@ -271,7 +271,10 @@ class DialogueTree:
             choice = DialogueChoice(choice_text, make_callback(next_node_id, callback))
             choices.append(choice)
 
-        return Dialogue(node['text'], choices=choices)
+        dialogue = Dialogue(node['text'], choices=choices)
+        # Store a reference to the tree so the game can get the next dialogue
+        dialogue.tree = self
+        return dialogue
 
     def get_next_dialogue(self):
         """Get the dialogue for the current node

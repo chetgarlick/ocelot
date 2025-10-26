@@ -141,7 +141,9 @@ class JSONLevel(Level):
                     choice_text = choice_data.get('text', '')
                     next_node = choice_data.get('next', 'end')
                     choices.append((choice_text, next_node))
-                tree.add_node(node_id, text, choices=choices if choices else None)
+
+                # Always pass choices as a list (empty list if no choices)
+                tree.add_node(node_id, text, choices=choices)
 
             # Create NPC
             npc = NPC(x, y, name, tree)
