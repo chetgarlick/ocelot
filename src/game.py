@@ -139,23 +139,47 @@ class Game:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if self.state == "PLAYING":
-                        self._pause_game()
+                        # Close dialogue if open, otherwise pause
+                        if self.current_dialogue:
+                            self.current_dialogue = None
+                        else:
+                            self._pause_game()
                     elif self.state == "PAUSED":
                         self._resume_game()
                     elif self.state in ["MAIN_MENU", "OPTIONS_MENU"]:
                         self.running = False
                 elif event.key == pygame.K_SPACE:
                     if self.state == "PLAYING":
-                        # Initiate dash in direction of current movement
-                        self._initiate_dash()
+                        # Confirm dialogue choice if dialogue is open
+                        if self.current_dialogue and self.current_dialogue.choices:
+                            self.current_dialogue.confirm_choice()
+                            self.current_dialogue = None
+                        else:
+                            # Initiate dash in direction of current movement
+                            self._initiate_dash()
                     elif self.current_menu:
                         # Handle menu keyboard input (Space to activate)
                         result = self.current_menu.handle_keyboard(event.key)
                         if result is not None:
                             self.state = result if isinstance(result, str) else self.state
-                elif event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_w, pygame.K_s, pygame.K_RETURN]:
+                elif event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_w, pygame.K_s]:
+                    # Handle dialogue choice navigation
+                    if self.state == "PLAYING" and self.current_dialogue and self.current_dialogue.choices:
+                        if event.key in [pygame.K_UP, pygame.K_w]:
+                            self.current_dialogue.select_previous_choice()
+                        elif event.key in [pygame.K_DOWN, pygame.K_s]:
+                            self.current_dialogue.select_next_choice()
                     # Handle menu navigation
-                    if self.current_menu:
+                    elif self.current_menu:
+                        result = self.current_menu.handle_keyboard(event.key)
+                        if result is not None:
+                            self.state = result if isinstance(result, str) else self.state
+                elif event.key == pygame.K_RETURN:
+                    # Confirm dialogue choice if dialogue is open
+                    if self.state == "PLAYING" and self.current_dialogue and self.current_dialogue.choices:
+                        self.current_dialogue.confirm_choice()
+                        self.current_dialogue = None
+                    elif self.current_menu:
                         result = self.current_menu.handle_keyboard(event.key)
                         if result is not None:
                             self.state = result if isinstance(result, str) else self.state
@@ -233,6 +257,9 @@ class Game:
 
             # Check for signpost interactions
             self._check_signpost_interaction()
+
+            # Check for NPC interactions
+            self._check_npc_interaction()
 
             # Update current dialogue
             if self.current_dialogue:
@@ -529,6 +556,17 @@ class Game:
             if signpost.can_interact(self.player):
                 # Create dialogue from signpost
                 self.current_dialogue = Dialogue(signpost.get_dialogue_text())
+                break
+
+    def _check_npc_interaction(self):
+        """Check if player is near an NPC and can interact with it"""
+        current_level = self.level_manager.get_current_level()
+
+        # Check if player is near any NPC
+        for npc in current_level.npcs:
+            if npc.can_interact(self.player):
+                # Start the NPC's dialogue tree
+                self.current_dialogue = npc.start_dialogue()
                 break
 
     def _check_level_transition(self):
